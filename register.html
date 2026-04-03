@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Mode — Inscription</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --rose: #f2a7b8;
+            --rose-light: #fce4ec;
+            --rose-deep: #e88fa3;
+            --blush: #fdf0f3;
+            --sage: #b8cfc0;
+            --text: #3d2c30;
+            --muted: #9e7e84;
+            --border: rgba(242,167,184,0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--blush);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
+        padding: 2rem 0;
+    }
+
+    .blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(242,167,184,0.2) 0%, transparent 70%); top: -150px; left: -100px; }
+    .blob-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(184,207,192,0.18) 0%, transparent 70%); bottom: -100px; right: -100px; }
+
+    .petal { position: fixed; pointer-events: none; z-index: 0; animation: floatPetal linear infinite; opacity: 0; }
+
+    .card-wrapper {
+        position: relative; z-index: 1;
+        width: 100%; max-width: 440px;
+        padding: 1.5rem;
+        animation: slideUp 0.7s 0.2s ease both;
+    }
+
+    .brand {
+        text-align: center;
+        margin-bottom: 1.8rem;
+    }
+    .brand-logo {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem; font-weight: 300;
+        color: var(--text); letter-spacing: 3px;
+    }
+    .brand-logo span { color: var(--rose-deep); font-style: italic; }
+    .brand-tagline { font-size: 0.72rem; color: var(--muted); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; }
+
+    .auth-card {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 8px 40px rgba(232,143,163,0.12);
+    }
+
+    .auth-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .auth-subtitle { font-size: 0.83rem; color: var(--muted); margin-bottom: 2rem; }
+
+    /* Progress steps */
+    .steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .step {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.72rem; font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .step.active { background: var(--rose-deep); color: white; box-shadow: 0 2px 10px rgba(232,143,163,0.4); }
+    .step.done { background: var(--sage); color: white; }
+    .step.inactive { background: rgba(242,167,184,0.2); color: var(--muted); }
+    .step-line { flex: 1; height: 2px; background: var(--border); max-width: 40px; border-radius: 2px; transition: background 0.3s; }
+    .step-line.done { background: var(--sage); }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-label { font-size: 0.78rem; font-weight: 500; color: var(--text); letter-spacing: 0.5px; margin-bottom: 0.5rem; display: block; }
+
+    .input-wrap { position: relative; }
+    .input-wrap i.icon-left { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--rose); font-size: 1rem; pointer-events: none; }
+    .form-input {
+        width: 100%;
+        background: rgba(253,240,243,0.6);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 0.8rem 1rem 0.8rem 2.8rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem; color: var(--text);
+        outline: none; transition: all 0.3s ease;
+    }
+    .form-input::placeholder { color: #c4a4ab; }
+    .form-input:focus {
+        border-color: var(--rose);
+        background: rgba(255,255,255,0.9);
+        box-shadow: 0 0 0 4px rgba(242,167,184,0.15);
+    }
+    .form-input.error { border-color: #e57373; box-shadow: 0 0 0 4px rgba(229,115,115,0.1); }
+    .form-input.success { border-color: var(--sage); }
+
+    .error-msg { font-size: 0.72rem; color: #c0616b; margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+
+    /* Password strength */
+    .pwd-strength { margin-top: 6px; }
+    .pwd-bar-bg { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .pwd-bar { height: 100%; border-radius: 99px; transition: all 0.4s ease; width: 0; }
+    .pwd-label { font-size: 0.68rem; margin-top: 3px; transition: color 0.3s; }
+
+    .toggle-password {
+        position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+        color: var(--muted); cursor: pointer; font-size: 0.95rem; transition: color 0.2s;
+    }
+    .toggle-password:hover { color: var(--rose-deep); }
+
+    /* Style choices */
+    .style-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.7rem;
+        margin-bottom: 1.2rem;
+    }
+    .style-option {
+        background: rgba(253,240,243,0.6);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 0.9rem 0.7rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.82rem;
+        color: var(--muted);
+    }
+    .style-option .emoji { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+    .style-option:hover { border-color: var(--rose); color: var(--text); }
+    .style-option.selected {
+        border-color: var(--rose-deep);
+        background: rgba(242,167,184,0.12);
+        color: var(--rose-deep);
+        box-shadow: 0 2px 12px rgba(232,143,163,0.2);
+    }
+
+    .btn-primary-rose {
+        width: 100%;
+        background: linear-gradient(135deg, #e88fa3, #f2a7b8);
+        color: white; border: none; border-radius: 16px;
+        padding: 0.9rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem; font-weight: 500; letter-spacing: 0.5px;
+        cursor: pointer; transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(232,143,163,0.35);
+        position: relative; overflow: hidden;
+    }
+    .btn-primary-rose::before {
+        content: ''; position: absolute; top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    .btn-primary-rose:hover::before { left: 100%; }
+    .btn-primary-rose:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,143,163,0.45); }
+
+    .btn-secondary {
+        width: 100%; background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--muted); border-radius: 16px; padding: 0.85rem;
+        font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+        cursor: pointer; transition: all 0.3s ease; margin-top: 0.7rem;
+    }
+    .btn-secondary:hover { border-color: var(--rose); color: var(--rose-deep); }
+
+    .switch-link { text-align: center; font-size: 0.82rem; color: var(--muted); margin-top: 1.5rem; }
+    .switch-link a { color: var(--rose-deep); font-weight: 500; text-decoration: none; }
+    .switch-link a:hover { text-decoration: underline; }
+
+    /* Step panels */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+    /* Success animation */
+    .success-check {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--rose-deep), var(--rose));
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        box-shadow: 0 4px 20px rgba(232,143,163,0.4);
+        animation: popIn 0.5s ease;
+    }
+
+    .page-exit { animation: fadeOut 0.4s ease forwards; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    @keyframes floatPetal {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.15; }
+        90% { opacity: 0.15; }
+        100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+    }
+    /* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .card-wrapper { padding: 1rem; }
+  .auth-card { padding: 1.8rem 1.4rem; border-radius: 22px; }
+  .brand-logo { font-size: 1.9rem; }
+  .auth-title { font-size: 1.5rem; }
+  .form-input { font-size: 0.85rem; padding: 0.75rem 1rem 0.75rem 2.6rem; }
+  .btn-primary-rose { padding: 0.85rem; font-size: 0.88rem; }
+}
+@media (min-width: 481px) and (max-width: 768px) {
+  .card-wrapper { max-width: 480px; padding: 2rem; }
+  .auth-card { padding: 2.2rem 1.8rem; }
+}
+@media (min-width: 769px) {
+  body { padding: 2rem; }
+  .card-wrapper { max-width: 460px; }
+  .auth-card { padding: 3rem 2.5rem; }
+  .brand-logo { font-size: 2.8rem; }
+}
+@media (max-width: 360px) {
+  .style-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .style-option { padding: 0.7rem 0.5rem; font-size: 0.75rem; }
+  .style-option .emoji { font-size: 1.2rem; }
+  .steps { gap: 0.3rem; }
+  .step { width: 24px; height: 24px; font-size: 0.65rem; }
+}
+</style>
+
+
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+
+<div class="card-wrapper">
+    <div class="brand">
+        <div class="brand-logo">AURA <span>Mode</span></div>
+        <div class="brand-tagline">Votre style, votre aura</div>
+    </div>
+
+    <div class="auth-card">
+        <!-- Steps indicator -->
+        <div class="steps">
+            <div class="step active" id="step-dot-1">1</div>
+            <div class="step-line" id="line-1"></div>
+            <div class="step inactive" id="step-dot-2">2</div>
+            <div class="step-line" id="line-2"></div>
+            <div class="step inactive" id="step-dot-3">✓</div>
+        </div>
+
+        <!-- STEP 1: Infos de base -->
+        <div class="step-panel active" id="panel-1">
+            <div class="auth-title">Créer un compte ✨</div>
+            <div class="auth-subtitle">Rejoignez la communauté Aura Mode</div>
+
+            <div class="form-group">
+                <label class="form-label">Prénom</label>
+                <div class="input-wrap">
+                    <i class="bi bi-person icon-left"></i>
+                    <input type="text" class="form-input" id="prenom" placeholder="Votre prénom"/>
+                </div>
+                <div class="error-msg" id="err-prenom">Veuillez entrer votre prénom</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Adresse email</label>
+                <div class="input-wrap">
+                    <i class="bi bi-envelope icon-left"></i>
+                    <input type="email" class="form-input" id="email" placeholder="votre@email.com"/>
+                </div>
+                <div class="error-msg" id="err-email">Email invalide</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <div class="input-wrap">
+                    <i class="bi bi-lock icon-left"></i>
+                    <input type="password" class="form-input" id="password" placeholder="••••••••" oninput="checkStrength(this.value)"/>
+                    <i class="bi bi-eye toggle-password" onclick="togglePwd('password', this)"></i>
+                </div>
+                <div class="pwd-strength">
+                    <div class="pwd-bar-bg"><div class="pwd-bar" id="pwd-bar"></div></div>
+                    <div class="pwd-label" id="pwd-label" style="color: var(--muted)">Entrez un mot de passe</div>
+                </div>
+            </div>
+
+            <button class="btn-primary-rose" onclick="nextStep(1)">Continuer →</button>
+            <div class="switch-link">
+                Déjà membre ?
+                <a href="login.html" onclick="navigateTo(event, 'login.html')">Se connecter</a>
+            </div>
+        </div>
+
+        <!-- STEP 2: Style -->
+        <div class="step-panel" id="panel-2">
+            <div class="auth-title">Votre style 👗</div>
+            <div class="auth-subtitle">Pour personnaliser vos suggestions</div>
+
+            <div class="style-grid">
+                <div class="style-option" onclick="selectStyle(this, 'casual')">
+                    <span class="emoji">👖</span>Casual
+                </div>
+                <div class="style-option" onclick="selectStyle(this, 'chic')">
+                    <span class="emoji">👠</span>Chic
+                </div>
+                <div class="style-option" onclick="selectStyle(this, 'boheme')">
+                    <span class="emoji">🌿</span>Bohème
+                </div>
+                <div class="style-option" onclick="selectStyle(this, 'sportif')">
+                    <span class="emoji">🏃‍♀️</span>Sportif
+                </div>
+            </div>
+
+            <button class="btn-primary-rose" onclick="nextStep(2)">Créer mon compte ✦</button>
+            <button class="btn-secondary" onclick="prevStep(2)">← Retour</button>
+        </div>
+
+        <!-- STEP 3: Success -->
+        <div class="step-panel" id="panel-3">
+            <div class="success-check">🌸</div>
+            <div class="auth-title" style="text-align:center">Bienvenue ! ✨</div>
+            <div class="auth-subtitle" style="text-align:center; margin-bottom:2rem">
+                Votre compte a été créé avec succès.<br>
+                Prête à découvrir votre aura ?
+            </div>
+            <button class="btn-primary-rose" onclick="navigateTo(event, 'dashboard.html')">
+                Découvrir mon dashboard →
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Petals
+    const petals = ['🌸', '🌷', '✿', '❀'];
+    for (let i = 0; i < 6; i++) {
+        const p = document.createElement('div');
+        p.className = 'petal';
+        p.textContent = petals[Math.floor(Math.random() * petals.length)];
+        p.style.cssText = `left:${Math.random()*100}%;font-size:${0.6+Math.random()*0.8}rem;animation-duration:${8+Math.random()*8}s;animation-delay:${Math.random()*8}s;`;
+        document.body.appendChild(p);
+    }
+
+    let selectedStyle = '';
+
+    function selectStyle(el, style) {
+        document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedStyle = style;
+    }
+
+    function checkStrength(pwd) {
+        const bar = document.getElementById('pwd-bar');
+        const label = document.getElementById('pwd-label');
+        let score = 0;
+        if (pwd.length >= 8) score++;
+        if (/[A-Z]/.test(pwd)) score++;
+        if (/[0-9]/.test(pwd)) score++;
+        if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+        const levels = [
+            { w: '0%', color: 'transparent', text: 'Entrez un mot de passe', textColor: 'var(--muted)' },
+            { w: '25%', color: '#e57373', text: 'Trop faible', textColor: '#c0616b' },
+            { w: '50%', color: '#ffb74d', text: 'Moyen', textColor: '#e65100' },
+            { w: '75%', color: '#aed581', text: 'Bien', textColor: '#558b2f' },
+            { w: '100%', color: 'var(--sage)', text: 'Excellent ✓', textColor: '#2e7d32' },
+        ];
+        const l = levels[score];
+        bar.style.width = l.w;
+        bar.style.background = l.color;
+        label.textContent = l.text;
+        label.style.color = l.textColor;
+    }
+
+    function togglePwd(id, icon) {
+        const input = document.getElementById(id);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash toggle-password';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye toggle-password';
+        }
+    }
+
+    function validateStep1() {
+        let ok = true;
+        const prenom = document.getElementById('prenom').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const pwd = document.getElementById('password').value;
+
+        if (!prenom) { showErr('err-prenom', 'prenom'); ok = false; }
+        else hideErr('err-prenom', 'prenom');
+
+        if (!email || !/\S+@\S+\.\S+/.test(email)) { showErr('err-email', 'email'); ok = false; }
+        else hideErr('err-email', 'email');
+
+        return ok;
+    }
+
+    function showErr(errId, inputId) {
+        document.getElementById(errId).classList.add('show');
+        document.getElementById(inputId).classList.add('error');
+    }
+    function hideErr(errId, inputId) {
+        document.getElementById(errId).classList.remove('show');
+        document.getElementById(inputId).classList.remove('error');
+        document.getElementById(inputId).classList.add('success');
+    }
+
+    function nextStep(current) {
+        if (current === 1 && !validateStep1()) return;
+        if (current === 2) {
+            // Submit
+            document.getElementById(`panel-${current}`).classList.remove('active');
+            document.getElementById('panel-3').classList.add('active');
+            document.getElementById('step-dot-2').className = 'step done';
+            document.getElementById('line-2').classList.add('done');
+            document.getElementById('step-dot-3').className = 'step active';
+            return;
+        }
+        document.getElementById(`panel-${current}`).classList.remove('active');
+        document.getElementById(`panel-${current + 1}`).classList.add('active');
+        document.getElementById(`step-dot-${current}`).className = 'step done';
+        document.getElementById(`line-${current}`).classList.add('done');
+        document.getElementById(`step-dot-${current + 1}`).className = 'step active';
+    }
+
+    function prevStep(current) {
+        document.getElementById(`panel-${current}`).classList.remove('active');
+        document.getElementById(`panel-${current - 1}`).classList.add('active');
+        document.getElementById(`step-dot-${current}`).className = 'step inactive';
+        document.getElementById(`step-dot-${current - 1}`).className = 'step active';
+        document.getElementById(`line-${current - 1}`).classList.remove('done');
+    }
+
+    function navigateTo(e, url) {
+        if (e) e.preventDefault();
+        document.body.classList.add('page-exit');
+        setTimeout(() => window.location.href = url, 400);
+    }
+</script>
+
+
+</body>
+</html>

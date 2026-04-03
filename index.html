@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Mode — Connexion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --rose: #f2a7b8;
+            --rose-light: #fce4ec;
+            --rose-deep: #e88fa3;
+            --blush: #fdf0f3;
+            --sage: #b8cfc0;
+            --cream: #fdfaf7;
+            --text: #3d2c30;
+            --muted: #9e7e84;
+            --border: rgba(242,167,184,0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--blush);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
+    }
+
+    /* Background blobs */
+    .blob {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .blob-1 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(242,167,184,0.22) 0%, transparent 70%);
+        top: -150px; right: -150px;
+    }
+    .blob-2 {
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(184,207,192,0.18) 0%, transparent 70%);
+        bottom: -100px; left: -100px;
+    }
+    .blob-3 {
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(242,167,184,0.15) 0%, transparent 70%);
+        top: 40%; left: 10%;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    /* Floating petals */
+    .petal {
+        position: fixed;
+        pointer-events: none;
+        z-index: 0;
+        animation: floatPetal linear infinite;
+        opacity: 0;
+    }
+
+    .card-wrapper {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 420px;
+        padding: 1.5rem;
+        animation: slideUp 0.7s 0.2s ease both;
+    }
+
+    /* Logo */
+    .brand {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .brand-logo {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        font-weight: 300;
+        color: var(--text);
+        letter-spacing: 3px;
+        line-height: 1;
+    }
+    .brand-logo span {
+        color: var(--rose-deep);
+        font-style: italic;
+    }
+    .brand-tagline {
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    /* Card */
+    .auth-card {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 8px 40px rgba(232,143,163,0.12);
+    }
+
+    .auth-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+    }
+    .auth-subtitle {
+        font-size: 0.83rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+    }
+
+    /* Form */
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+    .form-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .input-wrap {
+        position: relative;
+    }
+    .input-wrap i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--rose);
+        font-size: 1rem;
+        pointer-events: none;
+    }
+    .form-input {
+        width: 100%;
+        background: rgba(253,240,243,0.6);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 0.8rem 1rem 0.8rem 2.8rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        color: var(--text);
+        outline: none;
+        transition: all 0.3s ease;
+    }
+    .form-input::placeholder { color: #c4a4ab; }
+    .form-input:focus {
+        border-color: var(--rose);
+        background: rgba(255,255,255,0.9);
+        box-shadow: 0 0 0 4px rgba(242,167,184,0.15);
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+    .toggle-password:hover { color: var(--rose-deep); }
+
+    .forgot-link {
+        text-align: right;
+        margin-top: -0.6rem;
+        margin-bottom: 1.5rem;
+    }
+    .forgot-link a {
+        font-size: 0.75rem;
+        color: var(--rose-deep);
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .forgot-link a:hover { opacity: 0.7; }
+
+    .btn-primary-rose {
+        width: 100%;
+        background: linear-gradient(135deg, #e88fa3, #f2a7b8);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 0.9rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(232,143,163,0.35);
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-primary-rose::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    .btn-primary-rose:hover::before { left: 100%; }
+    .btn-primary-rose:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,143,163,0.45);
+    }
+    .btn-primary-rose:active { transform: translateY(0); }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .divider span {
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 1px;
+    }
+
+    .switch-link {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--muted);
+    }
+    .switch-link a {
+        color: var(--rose-deep);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .switch-link a:hover { 
+        text-decoration: underline;
+    }
+
+    /* Page transition */
+    .page-exit {
+        animation: fadeOut 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
+    }
+    @keyframes floatPetal {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.15; }
+        90% { opacity: 0.15; }
+        100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+    }
+    /* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .card-wrapper { padding: 1rem; }
+  .auth-card { padding: 1.8rem 1.4rem; border-radius: 22px; }
+  .brand-logo { font-size: 1.9rem; }
+  .auth-title { font-size: 1.5rem; }
+  .form-input { font-size: 0.85rem; padding: 0.75rem 1rem 0.75rem 2.6rem; }
+  .btn-primary-rose { padding: 0.85rem; font-size: 0.88rem; }
+}
+@media (min-width: 481px) and (max-width: 768px) {
+  .card-wrapper { max-width: 480px; padding: 2rem; }
+  .auth-card { padding: 2.2rem 1.8rem; }
+}
+@media (min-width: 769px) {
+  body { padding: 2rem; }
+  .card-wrapper { max-width: 460px; }
+  .auth-card { padding: 3rem 2.5rem; }
+  .brand-logo { font-size: 2.8rem; }
+}
+</style>
+
+
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+
+<div class="card-wrapper">
+    <div class="brand">
+        <div class="brand-logo">AURA <span>Mode</span></div>
+        <div class="brand-tagline">Votre style, votre aura</div>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-title">Bon retour 🌸</div>
+        <div class="auth-subtitle">Connectez-vous à votre espace mode</div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Adresse email</label>
+                <div class="input-wrap">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" class="form-input" placeholder="votre@email.com" required/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <div class="input-wrap">
+                    <i class="bi bi-lock"></i>
+                    <input type="password" class="form-input" id="passwordInput" placeholder="••••••••" required/>
+                    <i class="bi bi-eye toggle-password" id="togglePwd" onclick="togglePassword()"></i>
+                </div>
+            </div>
+
+            <div class="forgot-link">
+                <a href="#">Mot de passe oublié ?</a>
+            </div>
+
+            <button type="submit" class="btn-primary-rose">
+                Se connecter ✦
+            </button>
+        </form>
+
+        <div class="divider"><span>ou</span></div>
+
+        <div class="switch-link">
+            Pas encore de compte ?
+            <a href="register.html" onclick="navigateTo(event, 'register.html')">Créer un compte</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Floating petals
+    const petals = ['🌸', '🌷', '✿', '❀'];
+    for (let i = 0; i < 8; i++) {
+        const p = document.createElement('div');
+        p.className = 'petal';
+        p.textContent = petals[Math.floor(Math.random() * petals.length)];
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            font-size: ${0.6 + Math.random() * 0.8}rem;
+            animation-duration: ${8 + Math.random() * 8}s;
+            animation-delay: ${Math.random() * 8}s;
+        `;
+        document.body.appendChild(p);
+    }
+
+    function togglePassword() {
+        const input = document.getElementById('passwordInput');
+        const icon = document.getElementById('togglePwd');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash toggle-password';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye toggle-password';
+        }
+    }
+
+    function navigateTo(e, url) {
+        e.preventDefault();
+        document.body.classList.add('page-exit');
+        setTimeout(() => window.location.href = url, 400);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.body.classList.add('page-exit');
+        setTimeout(() => window.location.href = 'dashboard.html', 400);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Mode - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+
+<style>
+    :root {
+        --rose: #f2a7b8;
+        --rose-light: #fce4ec;
+        --rose-deep: #e88fa3;
+        --blush: #fdf0f3;
+        --sage: #b8cfc0;
+        --cream: #fdfaf7;
+        --text: #3d2c30;
+        --muted: #9e7e84;
+        --card-bg: rgba(255,255,255,0.75);
+        --border: rgba(242,167,184,0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--blush);
+        color: var(--text);
+        padding-bottom: 90px;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Soft background blobs */
+    body::before {
+        content: '';
+        position: fixed;
+        top: -100px; right: -100px;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(242,167,184,0.18) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+    body::after {
+        content: '';
+        position: fixed;
+        bottom: 80px; left: -80px;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(184,207,192,0.15) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .container { position: relative; z-index: 1; }
+
+    /* ── WEATHER CARD ── */
+    .weather-card {
+        background: linear-gradient(135deg, #e8a0b0 0%, #f2c4ce 50%, #d4a5b5 100%);
+        color: white;
+        border-radius: 28px;
+        border: none;
+        box-shadow: 0 8px 32px rgba(232,143,163,0.3);
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.6s ease both;
+    }
+    .weather-card::before {
+        content: '';
+        position: absolute;
+        top: -30px; right: -30px;
+        width: 120px; height: 120px;
+        background: rgba(255,255,255,0.12);
+        border-radius: 50%;
+    }
+    .weather-card::after {
+        content: '';
+        position: absolute;
+        bottom: -20px; right: 60px;
+        width: 80px; height: 80px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+    }
+    .weather-card h5 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    .weather-card p {
+        font-size: 0.78rem;
+        opacity: 0.88;
+        letter-spacing: 1.5px;
+        font-weight: 300;
+    }
+    .weather-icon {
+        font-size: 2.8rem;
+        filter: drop-shadow(0 2px 8px rgba(255,255,255,0.3));
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* ── SECTION TITLE ── */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        animation: fadeUp 0.6s 0.2s ease both;
+        opacity: 0;
+    }
+    .section-title-text {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text);
+        letter-spacing: 0.2px;
+    }
+    .change-style {
+        font-size: 0.75rem;
+        color: var(--rose-deep);
+        cursor: pointer;
+        font-weight: 500;
+        transition: opacity 0.2s;
+        text-decoration: none;
+        border: none;
+        background: none;
+        padding: 0;
+    }
+    .change-style:hover { opacity: 0.7; }
+
+    /* ── OUTFIT CARD ── */
+    .outfit-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 24px rgba(232,143,163,0.1);
+        animation: fadeUp 0.6s 0.3s ease both;
+        opacity: 0;
+    }
+    .item-col {
+        transition: transform 0.3s ease;
+    }
+    .item-col:hover { transform: translateY(-4px); }
+    .item-img {
+        background: linear-gradient(135deg, #fce4ec, #fdf0f3);
+        border-radius: 18px;
+        height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(242,167,184,0.2);
+        transition: all 0.3s ease;
+    }
+    .item-col:hover .item-img {
+        background: linear-gradient(135deg, #f8bbd0, #fce4ec);
+        box-shadow: 0 4px 16px rgba(242,167,184,0.25);
+    }
+    .item-img i { color: var(--rose-deep); font-size: 1.6rem; }
+    .item-img small { color: var(--muted); font-size: 0.68rem; margin-top: 4px; font-weight: 500; }
+    .item-name {
+        font-size: 0.78rem;
+        color: var(--text);
+        font-weight: 500;
+        margin-top: 6px;
+        transition: color 0.2s;
+    }
+    .ia-loading .item-name { color: var(--rose); }
+
+    .btn-porter {
+        background: linear-gradient(135deg, #e88fa3, #f2a7b8);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        padding: 0.75rem;
+        width: 100%;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(232,143,163,0.3);
+        font-family: 'DM Sans', sans-serif;
+        letter-spacing: 0.3px;
+    }
+    .btn-porter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(232,143,163,0.4);
+        background: linear-gradient(135deg, #e07d94, #e88fa3);
+    }
+    .btn-porter:active { transform: translateY(0); }
+
+    /* ── LOADING DOTS ── */
+    .loading-dots span {
+        display: inline-block;
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--rose);
+        margin: 0 2px;
+        animation: dot-bounce 1.2s infinite ease-in-out;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ── FRIENDS ── */
+    .friends-section {
+        animation: fadeUp 0.6s 0.4s ease both;
+        opacity: 0;
+    }
+    .friends-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.9rem;
+    }
+    .friends-scroll {
+        display: flex;
+        gap: 1.2rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+    }
+    .friends-scroll::-webkit-scrollbar { display: none; }
+    .friend-item {
+        flex-shrink: 0;
+        text-align: center;
+        cursor: pointer;
+    }
+    .friend-avatar-wrap {
+        position: relative;
+        display: inline-block;
+    }
+    .friend-avatar {
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        border: 2.5px solid white;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(232,143,163,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .friend-item:hover .friend-avatar {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(232,143,163,0.35);
+    }
+    .friend-ring {
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--rose), var(--sage));
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .friend-item:hover .friend-ring { opacity: 1; }
+    .friend-name {
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    /* ── SHARED ITEM CARD ── */
+    .shared-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        backdrop-filter: blur(12px);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeUp 0.6s 0.5s ease both;
+        opacity: 0;
+    }
+    .shared-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(232,143,163,0.15);
+    }
+    .shared-item-img {
+        width: 65px; height: 65px;
+        background: linear-gradient(135deg, #fce4ec, #fdf0f3);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(242,167,184,0.2);
+    }
+    .shared-item-img i { color: var(--rose-deep); font-size: 1.6rem; }
+    .shared-info h6 {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 2px;
+    }
+    .shared-info p {
+        font-size: 0.72rem;
+        color: var(--muted);
+    }
+    .btn-emprunter {
+        margin-left: auto;
+        flex-shrink: 0;
+        background: transparent;
+        border: 1.5px solid var(--rose);
+        color: var(--rose-deep);
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.4rem 0.9rem;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .btn-emprunter:hover {
+        background: var(--rose);
+        color: white;
+        border-color: var(--rose);
+        transform: scale(1.05);
+    }
+
+    /* ── NAV BOTTOM ── */
+    .nav-bottom {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(253,240,243,0.92);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        padding: 10px 0 14px;
+        z-index: 1000;
+    }
+    .nav-bottom .container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    .nav-item:hover { transform: translateY(-2px); }
+    .nav-item i { font-size: 1.3rem; }
+    .nav-item small { font-size: 9px; font-weight: 500; letter-spacing: 0.3px; }
+    .nav-item.active i, .nav-item.active small { color: var(--rose-deep); }
+    .nav-item.inactive i, .nav-item.inactive small { color: #c4a4ab; }
+
+    .scan-btn {
+        background: linear-gradient(135deg, var(--rose-deep), var(--rose));
+        color: white;
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -28px;
+        box-shadow: 0 4px 20px rgba(232,143,163,0.45);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        border: 3px solid var(--blush);
+    }
+    .scan-btn:hover {
+        transform: scale(1.1) translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,143,163,0.5);
+    }
+    .scan-btn i { font-size: 1.2rem; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-6px); }
+    }
+    @keyframes dot-bounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40%            { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+
+    /* IA Loading shimmer */
+    .ia-loading .item-img {
+        background: linear-gradient(90deg, #fce4ec 25%, #fdf0f3 50%, #fce4ec 75%);
+        background-size: 200% auto;
+        animation: shimmer 1.5s linear infinite;
+    }
+
+    /* Petal decoration */
+    .petal {
+        position: fixed;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.12;
+        font-size: 1.2rem;
+    }
+    .petal-1 { top: 15%; left: 5%; animation: float 4s 0s ease-in-out infinite; }
+    .petal-2 { top: 40%; right: 4%; animation: float 5s 1s ease-in-out infinite; }
+    .petal-3 { top: 70%; left: 8%; animation: float 4.5s 0.5s ease-in-out infinite; }
+
+</style>
+
+
+</head>
+<body>
+
+
+<!-- Decorative petals -->
+<div class="petal petal-1">🌸</div>
+<div class="petal petal-2">🌷</div>
+<div class="petal petal-3">🌸</div>
+
+<div class="container py-4">
+
+    <!-- WEATHER CARD -->
+    <div class="weather-card p-4 mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">Bonjour, Aya ! ✨</h5>
+            <p class="mb-0">Casablanca : 19°C • Ensoleillé</p>
+        </div>
+        <i class="bi bi-brightness-high-fill weather-icon"></i>
+    </div>
+
+    <!-- OUTFIT SECTION -->
+    <div class="section-header">
+        <span class="section-title-text">Tenue du jour ✦ IA</span>
+        <button class="change-style" onclick="changerStyle()">Changer de style ↻</button>
+    </div>
+
+    <div class="outfit-card p-3 mb-4">
+        <div class="row g-2 text-center" id="outfit-row">
+            <div class="col-4 item-col">
+                <div class="item-img">
+                    <i class="bi bi-shirt"></i>
+                    <small>Haut</small>
+                </div>
+                <p class="item-name" id="haut-text">Pull Beige</p>
+            </div>
+            <div class="col-4 item-col">
+                <div class="item-img">
+                    <i class="bi bi-layers"></i>
+                    <small>Bas</small>
+                </div>
+                <p class="item-name" id="bas-text">Jean Mom</p>
+            </div>
+            <div class="col-4 item-col">
+                <div class="item-img">
+                    <i class="bi bi-handbag"></i>
+                    <small>Acc.</small>
+                </div>
+                <p class="item-name" id="acc-text">Sac Cuir</p>
+            </div>
+        </div>
+        <button class="btn-porter" onclick="porterTenue()">
+            <i class="bi bi-heart me-2"></i>Porter cette tenue
+        </button>
+    </div>
+
+    <!-- FRIENDS -->
+    <div class="friends-section mb-4">
+        <div class="friends-title">Le Dressing des Amies 🎀</div>
+        <div class="friends-scroll">
+            <div class="friend-item">
+                <div class="friend-avatar-wrap">
+                    <div class="friend-ring"></div>
+                    <img src="https://i.pravatar.cc/100?u=salma" class="friend-avatar" alt="Salma">
+                </div>
+                <div class="friend-name">Salma</div>
+            </div>
+            <div class="friend-item">
+                <div class="friend-avatar-wrap">
+                    <div class="friend-ring"></div>
+                    <img src="https://i.pravatar.cc/100?u=zineb" class="friend-avatar" alt="Zineb">
+                </div>
+                <div class="friend-name">Zineb</div>
+            </div>
+            <div class="friend-item">
+                <div class="friend-avatar-wrap">
+                    <div class="friend-ring"></div>
+                    <img src="https://i.pravatar.cc/100?u=ghita" class="friend-avatar" alt="Ghita">
+                </div>
+                <div class="friend-name">Ghita</div>
+            </div>
+            <div class="friend-item">
+                <div class="friend-avatar-wrap">
+                    <div class="friend-ring"></div>
+                    <img src="https://i.pravatar.cc/100?u=leila" class="friend-avatar" alt="Leila">
+                </div>
+                <div class="friend-name">Leila</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHARED ITEM -->
+    <div class="shared-card">
+        <div class="shared-item-img">
+            <i class="bi bi-stars"></i>
+        </div>
+        <div class="shared-info">
+            <h6>Robe de soirée (Rouge)</h6>
+            <p>Partagé par <strong>Salma</strong></p>
+        </div>
+        <button class="btn-emprunter">Emprunter</button>
+    </div>
+
+</div>
+
+<!-- NAV BOTTOM -->
+<div class="nav-bottom">
+    <div class="container">
+        <div class="nav-item active">
+            <i class="bi bi-house-door-fill"></i>
+            <small>Accueil</small>
+        </div>
+        <a href="dressing.html" class="nav-item inactive" style="text-decoration:none" onclick="navigateTo(event,'dressing.html')">
+            <i class="bi bi-archive-fill"></i>
+            <small>Dressing</small>
+        </a>
+        <div class="scan-btn">
+            <i class="bi bi-camera-fill"></i>
+        </div>
+        <div class="nav-item inactive">
+            <i class="bi bi-people-fill"></i>
+            <small>Amies</small>
+        </div>
+        <a href="profile.html" class="nav-item inactive" style="text-decoration:none" onclick="navigateTo(event,'profile.html')">
+            <i class="bi bi-person-circle"></i>
+            <small>Profil</small>
+        </a>
+    </div>
+</div>
+
+<script>
+    function navigateTo(e, url) {
+        e.preventDefault();
+        document.body.style.transition = 'opacity 0.4s ease';
+        document.body.style.opacity = '0';
+        setTimeout(() => window.location.href = url, 400);
+    }
+
+    const API_KEY = "e7b1403248963f98f9a8faa7f6deec0e";
+    let currentTenue = null;
+
+    function setLoading(oui) {
+        const cols = document.querySelectorAll('.item-col');
+        cols.forEach(c => oui ? c.classList.add('ia-loading') : c.classList.remove('ia-loading'));
+        document.getElementById('haut-text').innerHTML = oui ? '<span class="loading-dots"><span></span><span></span><span></span></span>' : '';
+        document.getElementById('bas-text').innerHTML  = oui ? '<span class="loading-dots"><span></span><span></span><span></span></span>' : '';
+        document.getElementById('acc-text').innerHTML  = oui ? '<span class="loading-dots"><span></span><span></span><span></span></span>' : '';
+    }
+
+    function setTenue(tenue) {
+        currentTenue = tenue;
+        document.querySelectorAll('.item-col').forEach(c => c.classList.remove('ia-loading'));
+        document.getElementById('haut-text').textContent = tenue.haut;
+        document.getElementById('bas-text').textContent  = tenue.bas;
+        document.getElementById('acc-text').textContent  = tenue.acc;
+    }
+
+    function fallbackTenue(temp) {
+        if (temp < 10) return { haut: "Manteau Long", bas: "Jean Chaud", acc: "Bonnet" };
+        if (temp < 15) return { haut: "Veste Épaisse", bas: "Jean Slim", acc: "Écharpe" };
+        if (temp < 20) return { haut: "Pull Beige", bas: "Jean Mom", acc: "Sac Cuir" };
+        if (temp < 25) return { haut: "T-shirt Blanc", bas: "Pantalon Léger", acc: "Lunettes" };
+        return { haut: "Top Léger", bas: "Jupe Fleurie", acc: "Chapeau Paille" };
+    }
+
+    async function getTenueIA(temp, description, ville) {
+        const response = await fetch("/.netlify/functions/claude", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ temp, description, ville })
+        });
+        return JSON.parse(await response.text());
+    }
+
+    async function changerStyle() {
+        if (!currentTenue) return;
+        setLoading(true);
+        try {
+            const p = document.querySelector(".weather-card p").textContent;
+            const parts = p.split("•");
+            const temp = parseInt(parts[0].split(":")[1]);
+            const desc = parts[1]?.trim().toLowerCase() || "nuageux";
+            const ville = parts[0].split(":")[0].trim();
+            const tenue = await getTenueIA(temp, desc, ville);
+            setTenue(tenue);
+        } catch(e) {
+            setTenue(fallbackTenue(20));
+        }
+    }
+
+    function porterTenue() {
+        const btn = document.querySelector('.btn-porter');
+        btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Tenue enregistrée !';
+        btn.style.background = 'linear-gradient(135deg, #b8cfc0, #a8c0b0)';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-heart me-2"></i>Porter cette tenue';
+            btn.style.background = '';
+        }, 2000);
+    }
+
+    // GÉOLOCALISATION + MÉTÉO
+    // Demander permission manuellement
+document.querySelector('.weather-card').style.cursor = 'pointer';
+document.querySelector('.weather-card').addEventListener('click', demanderPosition);
+
+async function demanderPosition() {
+  document.querySelector('.weather-card p').textContent = 
+    'Chargement... 📍';
+  navigator.geolocation.getCurrentPosition(
+        async function(position) {
+            const { latitude: lat, longitude: lon } = position.coords;
+            const meteo = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`
+            ).then(r => r.json());
+
+            const temp = Math.round(meteo.main.temp);
+            const description = meteo.weather[0].description;
+            const ville = meteo.name;
+            const icone = meteo.weather[0].main;
+
+            document.querySelector(".weather-card p").textContent =
+                `${ville.toUpperCase()} : ${temp}°C • ${description.toUpperCase()}`;
+
+            const iconEl = document.querySelector(".weather-icon");
+            if (icone === "Clear")  iconEl.className = "bi bi-brightness-high-fill weather-icon";
+            else if (icone === "Clouds") iconEl.className = "bi bi-cloud-fill weather-icon";
+            else if (icone === "Rain")   iconEl.className = "bi bi-cloud-rain-fill weather-icon";
+            else if (icone === "Snow")   iconEl.className = "bi bi-snow weather-icon";
+            else iconEl.className = "bi bi-cloud-sun-fill weather-icon";
+
+            setLoading(true);
+            try {
+                const tenue = await getTenueIA(temp, description, ville);
+                setTenue(tenue);
+            } catch(e) {
+                setTenue(fallbackTenue(temp));
+            }
+        },
+        function() {
+            document.querySelector(".weather-card p").textContent = "Activez la localisation 📍";
+            setTenue(fallbackTenue(18));
+        },
+        {timeout: 10000, enableHighAccuracy: true}
+    );
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>
