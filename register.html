@@ -246,6 +246,33 @@
   .steps { gap: 0.3rem; }
   .step { width: 24px; height: 24px; font-size: 0.65rem; }
 }
+/* Fix modal height */
+.modal-overlay {
+    align-items: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+body {
+    align-items: flex-start;
+    padding: 2rem 0;
+    min-height: 100vh;
+}
+/* Bouton rose foncé on success */
+.btn-primary-rose.success {
+    background: linear-gradient(135deg, #c2185b, #e88fa3) !important;
+    box-shadow: 0 4px 20px rgba(194,24,91,0.4) !important;
+}
+
+/* Active state - kif katkliki */
+.btn-primary-rose:active {
+    transform: scale(0.98);
+    background: linear-gradient(135deg, #d4627a, #e88fa3);
+}
 </style>
 
 
@@ -432,22 +459,33 @@
     }
 
     function nextStep(current) {
-        if (current === 1 && !validateStep1()) return;
-        if (current === 2) {
-            // Submit
-            document.getElementById(`panel-${current}`).classList.remove('active');
-            document.getElementById('panel-3').classList.add('active');
-            document.getElementById('step-dot-2').className = 'step done';
-            document.getElementById('line-2').classList.add('done');
-            document.getElementById('step-dot-3').className = 'step active';
-            return;
-        }
-        document.getElementById(`panel-${current}`).classList.remove('active');
-        document.getElementById(`panel-${current + 1}`).classList.add('active');
-        document.getElementById(`step-dot-${current}`).className = 'step done';
-        document.getElementById(`line-${current}`).classList.add('done');
-        document.getElementById(`step-dot-${current + 1}`).className = 'step active';
+    const btn = document.querySelector('#panel-' + current + ' .btn-primary-rose');
+    
+    if (current === 1 && !validateStep1()) return;
+    
+    // Bouton devient rose foncé ✓
+    if (btn) {
+        btn.classList.add('success');
+        btn.innerHTML = '✓ Continuer';
+        setTimeout(() => {
+            btn.classList.remove('success');
+            // Passer au step suivant
+            if (current === 2) {
+                document.getElementById(`panel-${current}`).classList.remove('active');
+                document.getElementById('panel-3').classList.add('active');
+                document.getElementById('step-dot-2').className = 'step done';
+                document.getElementById('line-2').classList.add('done');
+                document.getElementById('step-dot-3').className = 'step active';
+            } else {
+                document.getElementById(`panel-${current}`).classList.remove('active');
+                document.getElementById(`panel-${current + 1}`).classList.add('active');
+                document.getElementById(`step-dot-${current}`).className = 'step done';
+                document.getElementById(`line-${current}`).classList.add('done');
+                document.getElementById(`step-dot-${current + 1}`).className = 'step active';
+            }
+        }, 600);
     }
+}
 
     function prevStep(current) {
         document.getElementById(`panel-${current}`).classList.remove('active');
