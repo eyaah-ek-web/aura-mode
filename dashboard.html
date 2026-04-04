@@ -665,13 +665,24 @@
     }
 
     async function getTenueIA(temp, description, ville) {
+    try {
         const response = await fetch("/.netlify/functions/claude", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ temp, description, ville })
         });
-        return JSON.parse(await response.text());
+        const data = await response.json();
+        // التأكد أن البيانات صحيحة
+        if (data.haut && data.bas && data.acc) {
+            return data;
+        } else {
+            return fallbackTenue(temp);
+        }
+    } catch(e) {
+        console.log("IA failed, using fallback", e);
+        return fallbackTenue(temp);
     }
+}
 
     async function changerStyle() {
         if (!currentTenue) return;
@@ -686,6 +697,7 @@
             setTenue(tenue);
         } catch(e) {
             setTenue(fallbackTenue(20));
+            setLoading(false);
         }
     }
 

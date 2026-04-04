@@ -35,117 +35,359 @@
         .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(242,167,184,0.18) 0%, transparent 70%); top: -100px; right: -100px; }
         .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(184,207,192,0.14) 0%, transparent 70%); bottom: 80px; left: -80px; }
 
+        /* HEADER */
         .profile-header {
             position: relative; z-index: 1;
             background: linear-gradient(160deg, #e8a0b0 0%, #f2c4ce 60%, #d4b8c4 100%);
             padding: 3rem 1.5rem 5rem;
-            text-align: center;
-            overflow: hidden;
+            text-align: center; overflow: hidden;
         }
+        .profile-header::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .profile-header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.07); border-radius: 50%; }
 
         .back-btn {
             position: absolute; top: 1.2rem; left: 1.2rem;
-            background: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
             border-radius: 12px; padding: 0.5rem 0.9rem;
-            color: white; font-size: 0.85rem;
-            text-decoration: none;
-            display: flex; align-items: center; gap: 5px;
+            color: white; font-size: 0.85rem; cursor: pointer;
+            text-decoration: none; backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 5px; transition: all 0.2s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.35); }
+
+        .avatar-wrap { position: relative; display: inline-block; margin-bottom: 1rem; animation: popIn 0.6s 0.3s ease both; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid white; object-fit: cover; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .avatar-edit {
+            position: absolute; bottom: 2px; right: 2px;
+            width: 28px; height: 28px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--rose-deep); font-size: 0.75rem;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .avatar-edit:hover { transform: scale(1.1); }
+
+        .profile-name { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .profile-email { font-size: 0.8rem; color: rgba(255,255,255,0.8); margin-top: 3px; }
+        .profile-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 99px; padding: 0.3rem 0.9rem;
+            font-size: 0.72rem; color: white; margin-top: 0.7rem;
+            backdrop-filter: blur(10px);
         }
 
-        .avatar { width: 90px; height: 90px; border-radius: 50%; }
+        /* STATS */
+        .stats-row {
+            position: relative; z-index: 2;
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem; max-width: 420px;
+            margin: -2.5rem auto 0; padding: 0 1.5rem;
+        }
+        .stat-card {
+            background: var(--card); backdrop-filter: blur(16px);
+            border: 1px solid var(--border); border-radius: 18px;
+            padding: 1rem 0.5rem; text-align: center;
+            box-shadow: 0 4px 16px rgba(232,143,163,0.1);
+            animation: slideUp 0.6s ease both;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: var(--text); line-height: 1; }
+        .stat-label { font-size: 0.65rem; color: var(--muted); margin-top: 3px; letter-spacing: 0.5px; }
 
+        /* CONTENT */
+        .content { padding: 1.5rem; max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+
+        .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--rose-deep); margin-bottom: 0.8rem; margin-top: 1.5rem; }
+
+        /* STYLE TAGS */
+        .style-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .style-tag {
+            background: rgba(242,167,184,0.12); border: 1.5px solid var(--border);
+            border-radius: 99px; padding: 0.35rem 0.9rem;
+            font-size: 0.78rem; color: var(--rose-deep);
+            font-weight: 500; transition: all 0.2s; cursor: pointer;
+        }
+        .style-tag.active { background: linear-gradient(135deg, rgba(232,143,163,0.2), rgba(242,167,184,0.15)); border-color: var(--rose-deep); }
+        .style-tag:hover { border-color: var(--rose-deep); }
+
+        /* SETTINGS */
+        .settings-list { display: flex; flex-direction: column; gap: 0.7rem; }
+        .setting-item {
+            background: var(--card); backdrop-filter: blur(12px);
+            border: 1px solid var(--border); border-radius: 18px;
+            padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.9rem;
+            cursor: pointer; transition: all 0.25s ease; text-decoration: none;
+            animation: fadeUp 0.5s ease both;
+        }
+        .setting-item:hover { transform: translateX(4px); border-color: var(--rose); }
+        .setting-item:nth-child(1) { animation-delay: 0.1s; }
+        .setting-item:nth-child(2) { animation-delay: 0.18s; }
+        .setting-item:nth-child(3) { animation-delay: 0.26s; }
+        .setting-item:nth-child(4) { animation-delay: 0.34s; }
+        .setting-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .setting-text { flex: 1; }
+        .setting-title { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+        .setting-sub { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+        .setting-arrow { color: var(--muted); font-size: 0.85rem; }
+
+        /* LOGOUT */
+        .btn-logout {
+            width: 100%; margin-top: 1rem; background: transparent;
+            border: 1.5px solid rgba(229,115,115,0.3); border-radius: 16px;
+            padding: 0.9rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 500; color: #c0616b;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-logout:hover { background: rgba(229,115,115,0.08); border-color: #e57373; transform: translateY(-1px); }
+
+        /* CAMERA MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(61,44,48,0.4); backdrop-filter: blur(8px);
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-sheet {
+            background: #fdf0f3; border-radius: 28px 28px 0 0;
+            padding: 1.5rem 1.5rem 4rem; width: 100%; max-width: 480px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+        .modal-handle { width: 36px; height: 4px; background: rgba(242,167,184,0.3); border-radius: 99px; margin: 0 auto 1.5rem; }
+        .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: #3d2c30; margin-bottom: 0.3rem; }
+        .modal-sub { font-size: 0.82rem; color: #9e7e84; margin-bottom: 1.5rem; }
+        .modal-options { display: flex; flex-direction: column; gap: 0.8rem; }
+        .modal-option {
+            background: rgba(255,255,255,0.78); border: 1.5px solid rgba(242,167,184,0.3);
+            border-radius: 18px; padding: 1.1rem 1.2rem;
+            display: flex; align-items: center; gap: 1rem;
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .modal-option:hover { border-color: #f2a7b8; transform: translateX(4px); }
+        .modal-option-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .modal-option-text h6 { font-size: 0.9rem; font-weight: 600; color: #3d2c30; margin-bottom: 2px; }
+        .modal-option-text p { font-size: 0.72rem; color: #9e7e84; margin: 0; }
+
+        /* NAV */
         .nav-bottom {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(253,240,243,0.92);
-            border-top: 1px solid var(--border);
-            padding: 10px 0 14px;
+            background: rgba(253,240,243,0.92); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border); padding: 10px 0 14px; z-index: 100;
+        }
+        .nav-inner { display: flex; justify-content: space-around; align-items: center; max-width: 480px; margin: 0 auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
+        .nav-item:hover { transform: translateY(-2px); }
+        .nav-item i { font-size: 1.3rem; }
+        .nav-item small { font-size: 9px; font-weight: 500; }
+        .nav-item.active i, .nav-item.active small { color: var(--rose-deep); }
+        .nav-item.inactive i, .nav-item.inactive small { color: #c4a4ab; }
+        .scan-btn {
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose));
+            color: white; width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-top: -28px; box-shadow: 0 4px 20px rgba(232,143,163,0.45);
+            transition: transform 0.3s ease; cursor: pointer; border: 3px solid var(--blush);
+        }
+        .scan-btn:hover { transform: scale(1.1) translateY(-2px); }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .profile-header { padding: 2.5rem 1.2rem 4.5rem; }
+            .profile-name { font-size: 1.5rem; }
+            .avatar { width: 75px; height: 75px; }
+            .stats-row { gap: 0.6rem; padding: 0 1rem; margin-top: -2rem; }
+            .stat-num { font-size: 1.3rem; }
+            .content { padding: 1.2rem 1rem; }
+            .setting-item { padding: 0.85rem 1rem; }
         }
 
-        .nav-inner { display: flex; justify-content: space-around; }
-
+        /* ANIMATIONS */
         .page-exit { animation: fadeOut 0.4s ease forwards; }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        /* ── CAMERA MODAL ── */
-.modal-overlay {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(61,44,48,0.4);
-    backdrop-filter: blur(8px);
-    display: flex; align-items: flex-end; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal-sheet {
-    background: #fdf0f3;
-    border-radius: 28px 28px 0 0;
-    padding: 1.5rem;
-    width: 100%; max-width: 480px;
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-overlay.open .modal-sheet { transform: translateY(0); }
-.modal-handle {
-    width: 36px; height: 4px;
-    background: rgba(242,167,184,0.3);
-    border-radius: 99px; margin: 0 auto 1.5rem;
-}
-.modal-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem; font-weight: 600;
-    color: #3d2c30; margin-bottom: 0.3rem;
-}
-.modal-sub { font-size: 0.82rem; color: #9e7e84; margin-bottom: 1.5rem; }
-.modal-options { display: flex; flex-direction: column; gap: 0.8rem; }
-.modal-option {
-    background: rgba(255,255,255,0.78);
-    border: 1.5px solid rgba(242,167,184,0.3);
-    border-radius: 18px; padding: 1.1rem 1.2rem;
-    display: flex; align-items: center; gap: 1rem;
-    cursor: pointer; transition: all 0.25s ease;
-}
-.modal-option:hover { border-color: #f2a7b8; transform: translateX(4px); }
-.modal-option-icon {
-    width: 44px; height: 44px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
-}
-.modal-option-text h6 { font-size: 0.9rem; font-weight: 600; color: #3d2c30; margin-bottom: 2px; }
-.modal-option-text p { font-size: 0.72rem; color: #9e7e84; margin: 0; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
-    
 </head>
-
 <body>
-<div class="blob blob-1"></div>
-<div class="blob blob-2"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
 
-<!-- HEADER -->
-<div class="profile-header">
-    <a href="dashboard.html" class="back-btn" onclick="navigateTo(event, 'dashboard.html')">
-        <i class="bi bi-arrow-left"></i> Retour
-    </a>
-    <img src="https://i.pravatar.cc/200?u=aya" class="avatar" alt="Aya"/>
-    <div>Aya</div>
-</div>
-
-<!-- NAV -->
-<div class="nav-bottom">
-    <div class="nav-inner">
-        <a href="dashboard.html" onclick="navigateTo(event, 'dashboard.html')">Accueil</a>
+    <!-- HEADER -->
+    <div class="profile-header">
+        <a href="dashboard.html" class="back-btn" onclick="navigateTo(event,'dashboard.html')">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        <div class="avatar-wrap">
+            <img src="https://i.pravatar.cc/200?u=aya" class="avatar" alt="Aya" id="profile-avatar"/>
+            <div class="avatar-edit"><i class="bi bi-pencil-fill"></i></div>
+        </div>
+        <div class="profile-name">Aya</div>
+        <div class="profile-email">aya@email.com</div>
+        <div class="profile-badge">✦ Style Chic</div>
     </div>
-</div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-<script>
-function navigateTo(e, url) {
-    e.preventDefault();
-    document.body.classList.add('page-exit');
-    setTimeout(() => window.location.href = url, 400);
-}
-</script>
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-num" id="stat-tenues">0</div>
+            <div class="stat-label">Tenues</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="stat-amies">0</div>
+            <div class="stat-label">Amies</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">8</div>
+            <div class="stat-label">Emprunts</div>
+        </div>
+    </div>
 
+    <!-- CONTENT -->
+    <div class="content">
+        <div class="section-label">Mon style</div>
+        <div class="style-tags">
+            <span class="style-tag active" onclick="toggleStyle(this)">👠 Chic</span>
+            <span class="style-tag" onclick="toggleStyle(this)">👖 Casual</span>
+            <span class="style-tag" onclick="toggleStyle(this)">🌿 Bohème</span>
+            <span class="style-tag" onclick="toggleStyle(this)">🏃‍♀️ Sportif</span>
+        </div>
+
+        <div class="section-label">Paramètres</div>
+        <div class="settings-list">
+            <div class="setting-item">
+                <div class="setting-icon" style="background:rgba(242,167,184,0.15)"><i class="bi bi-person" style="color:var(--rose-deep)"></i></div>
+                <div class="setting-text">
+                    <div class="setting-title">Modifier le profil</div>
+                    <div class="setting-sub">Nom, email, photo</div>
+                </div>
+                <i class="bi bi-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon" style="background:rgba(184,207,192,0.2)"><i class="bi bi-bell" style="color:var(--sage)"></i></div>
+                <div class="setting-text">
+                    <div class="setting-title">Notifications</div>
+                    <div class="setting-sub">Suggestions, emprunts</div>
+                </div>
+                <i class="bi bi-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon" style="background:rgba(242,167,184,0.12)"><i class="bi bi-shield-lock" style="color:var(--rose-deep)"></i></div>
+                <div class="setting-text">
+                    <div class="setting-title">Sécurité</div>
+                    <div class="setting-sub">Mot de passe, confidentialité</div>
+                </div>
+                <i class="bi bi-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-item">
+                <div class="setting-icon" style="background:rgba(184,207,192,0.2)"><i class="bi bi-palette" style="color:var(--sage)"></i></div>
+                <div class="setting-text">
+                    <div class="setting-title">Préférences de style</div>
+                    <div class="setting-sub">Mettre à jour vos goûts</div>
+                </div>
+                <i class="bi bi-chevron-right setting-arrow"></i>
+            </div>
+        </div>
+
+        <button class="btn-logout" onclick="logout()">
+            <i class="bi bi-box-arrow-right"></i> Se déconnecter
+        </button>
+    </div>
+
+    <!-- CAMERA MODAL -->
+    <div class="modal-overlay" id="nav-camera-modal" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Ajouter un vêtement 📸</div>
+            <div class="modal-sub">Choisissez comment ajouter votre pièce</div>
+            <div class="modal-options">
+                <div class="modal-option" onclick="openNativeCamera()">
+                    <div class="modal-option-icon" style="background:rgba(232,143,163,0.15)">📸</div>
+                    <div class="modal-option-text"><h6>Prendre une photo</h6><p>Ouvrir la caméra directement</p></div>
+                    <i class="bi bi-chevron-right" style="color:#9e7e84;margin-left:auto"></i>
+                </div>
+                <div class="modal-option" onclick="openGallery()">
+                    <div class="modal-option-icon" style="background:rgba(184,207,192,0.2)">🖼️</div>
+                    <div class="modal-option-text"><h6>Choisir depuis la galerie</h6><p>Importer une photo existante</p></div>
+                    <i class="bi bi-chevron-right" style="color:#9e7e84;margin-left:auto"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="navCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleNavImage(event)"/>
+    <input type="file" id="navGalleryInput" accept="image/*" style="display:none" onchange="handleNavImage(event)"/>
+
+    <!-- NAV -->
+    <div class="nav-bottom">
+        <div class="nav-inner">
+            <a href="dashboard.html" class="nav-item inactive" onclick="navigateTo(event,'dashboard.html')">
+                <i class="bi bi-house-door-fill"></i><small>Accueil</small>
+            </a>
+            <a href="dressing.html" class="nav-item inactive" onclick="navigateTo(event,'dressing.html')">
+                <i class="bi bi-archive-fill"></i><small>Dressing</small>
+            </a>
+            <div class="scan-btn" onclick="document.getElementById('nav-camera-modal').classList.add('open')">
+                <i class="bi bi-camera-fill"></i>
+            </div>
+            <a href="amies.html" class="nav-item inactive" onclick="navigateTo(event,'amies.html')">
+                <i class="bi bi-people-fill"></i><small>Amies</small>
+            </a>
+            <div class="nav-item active">
+                <i class="bi bi-person-circle"></i><small>Profil</small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stats depuis localStorage
+        const dressing = JSON.parse(localStorage.getItem('dressing') || '[]');
+        const amies = JSON.parse(localStorage.getItem('amies') || '[]');
+        document.getElementById('stat-tenues').textContent = dressing.length;
+        document.getElementById('stat-amies').textContent = amies.length;
+
+        function toggleStyle(el) {
+            document.querySelectorAll('.style-tag').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function openNativeCamera() {
+            document.getElementById('nav-camera-modal').classList.remove('open');
+            setTimeout(() => document.getElementById('navCameraInput').click(), 300);
+        }
+        function openGallery() {
+            document.getElementById('nav-camera-modal').classList.remove('open');
+            setTimeout(() => document.getElementById('navGalleryInput').click(), 300);
+        }
+        function handleNavImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                localStorage.setItem('pendingImage', ev.target.result);
+                navigateTo({ preventDefault: ()=>{} }, 'dressing.html');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        }
+
+        function logout() {
+            document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = 'index.html', 400);
+        }
+
+        function navigateTo(e, url) {
+            e.preventDefault();
+            document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = url, 400);
+        }
+    </script>
 </body>
 </html>

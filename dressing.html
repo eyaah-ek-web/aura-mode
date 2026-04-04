@@ -369,6 +369,7 @@
     @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
 </style>
 
 </head>
@@ -511,10 +512,10 @@
         <div class="scan-btn" onclick="openModal()">
             <i class="bi bi-camera-fill"></i>
         </div>
-        <div class="nav-item inactive">
+        <a href="amies.html" class="nav-item inactive" onclick="navigateTo(event,'amies.html')" style="text-decoration:none">
             <i class="bi bi-people-fill"></i>
             <small>Amies</small>
-        </div>
+        </a>
         <a href="profile.html" class="nav-item inactive" onclick="navigateTo(event,'profile.html')" style="text-decoration:none">
             <i class="bi bi-person-circle"></i>
             <small>Profil</small>
@@ -653,34 +654,50 @@ if (pendingImg) {
 
     // ── IA ANALYSIS ──
     async function analyzeWithIA(imageData) {
-        try {
-            const base64 = imageData.split(',')[1];
-            const mediaType = imageData.split(';')[0].split(':')[1];
+    try {
+        const base64 = imageData.split(',')[1];
+        const mediaType = imageData.split(';')[0].split(':')[1];
 
-            const response = await fetch("/.netlify/functions/claude", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "analyze_clothing",
-                    image: base64,
-                    mediaType: mediaType
-                })
-            });
+        const response = await fetch("/.netlify/functions/claude", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "analyze_clothing",
+                image: base64,
+                mediaType: mediaType
+            })
+        });
 
-            const result = await response.json();
+        const result = await response.json();
+        
+        // التأكد أن النتيجة فيها البيانات المطلوبة
+        if (result.name && result.category) {
             currentIAResult = result;
             showIAResult(result);
-
-        } catch(e) {
-            // Fallback si IA échoue
-            showIAResult({
+        } else {
+            // Fallback إذا الرجوع مش مكتمل
+            const fallback = {
                 name: "Vêtement",
                 category: "haut",
                 color: "",
                 tags: ["Vêtement détecté"]
-            });
+            };
+            currentIAResult = fallback;
+            showIAResult(fallback);
         }
+
+    } catch(e) {
+        console.log("IA analysis failed, using fallback", e);
+        const fallback = {
+            name: "Vêtement",
+            category: "haut",
+            color: "",
+            tags: ["Vêtement détecté"]
+        };
+        currentIAResult = fallback;
+        showIAResult(fallback);
     }
+}
 
     function showIAResult(result) {
         document.getElementById('ia-loading').style.display = 'none';
