@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Mode — Mes Amies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --rose: #f2a7b8;
+            --rose-light: #fce4ec;
+            --rose-deep: #e88fa3;
+            --blush: #fdf0f3;
+            --sage: #b8cfc0;
+            --text: #3d2c30;
+            --muted: #9e7e84;
+            --border: rgba(242,167,184,0.3);
+            --card: rgba(255,255,255,0.78);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--blush);
+            min-height: 100vh;
+            padding-bottom: 90px;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            overflow-x: hidden;
+        }
+
+        .blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+        .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(242,167,184,0.18) 0%, transparent 70%); top: -100px; right: -100px; }
+        .blob-2 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(184,207,192,0.14) 0%, transparent 70%); bottom: 80px; left: -80px; }
+
+        /* HEADER */
+        .page-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(253,240,243,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 0.8rem; }
+        .back-btn {
+            background: rgba(242,167,184,0.15);
+            border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.45rem 0.8rem;
+            color: var(--rose-deep); font-size: 0.85rem;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.2s; display: flex; align-items: center; gap: 4px;
+        }
+        .back-btn:hover { background: rgba(242,167,184,0.25); }
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem; font-weight: 600; color: var(--text);
+        }
+        .friends-count {
+            background: rgba(242,167,184,0.2);
+            border-radius: 99px; padding: 0.2rem 0.7rem;
+            font-size: 0.72rem; color: var(--rose-deep); font-weight: 600;
+        }
+
+        /* CONTENT */
+        .content { padding: 1.2rem 1.5rem; max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+
+        /* SEARCH */
+        .search-wrap {
+            position: relative; margin-bottom: 1.2rem;
+        }
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--rose); font-size: 0.95rem;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; color: var(--text);
+            outline: none; transition: all 0.3s ease;
+        }
+        .search-input::placeholder { color: #c4a4ab; }
+        .search-input:focus { border-color: var(--rose); box-shadow: 0 0 0 4px rgba(242,167,184,0.12); }
+
+        /* ADD BTN */
+        .btn-add-friend {
+            width: 100%;
+            background: linear-gradient(135deg, #e88fa3, #f2a7b8);
+            color: white; border: none; border-radius: 18px;
+            padding: 1rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem; font-weight: 500;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(232,143,163,0.3);
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-add-friend:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,143,163,0.4); }
+
+        /* SECTION LABEL */
+        .section-label {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 2.5px;
+            text-transform: uppercase; color: var(--rose-deep);
+            margin-bottom: 0.9rem;
+        }
+
+        /* FRIENDS LIST */
+        .friends-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+        .friend-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            display: flex; align-items: center; gap: 1rem;
+            transition: all 0.3s ease;
+            animation: fadeUp 0.5s ease both;
+            cursor: pointer;
+        }
+        .friend-card:hover { transform: translateX(4px); border-color: var(--rose); box-shadow: 0 4px 16px rgba(232,143,163,0.12); }
+
+        .friend-avatar-wrap { position: relative; flex-shrink: 0; }
+        .friend-avatar {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2.5px solid white;
+            box-shadow: 0 2px 10px rgba(232,143,163,0.2);
+        }
+        .friend-online {
+            position: absolute; bottom: 2px; right: 2px;
+            width: 12px; height: 12px;
+            border-radius: 50%; background: #81c784;
+            border: 2px solid white;
+        }
+
+        .friend-info { flex: 1; min-width: 0; }
+        .friend-name { font-size: 0.92rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .friend-meta { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+        .friend-pieces {
+            background: rgba(242,167,184,0.15);
+            border-radius: 6px; padding: 1px 6px;
+            font-size: 0.65rem; color: var(--rose-deep); font-weight: 600;
+        }
+
+        .friend-action {
+            background: rgba(242,167,184,0.12);
+            border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.45rem 0.8rem;
+            font-size: 0.75rem; color: var(--rose-deep);
+            font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .friend-action:hover { background: var(--rose); color: white; border-color: var(--rose); }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center; padding: 3rem 1rem;
+        }
+        .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.35; }
+        .empty-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--text); margin-bottom: 0.5rem; }
+        .empty-sub { font-size: 0.82rem; color: var(--muted); }
+
+        /* ── MODAL Ajouter Amie ── */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(61,44,48,0.4);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-sheet {
+            background: var(--blush);
+            border-radius: 28px 28px 0 0;
+            padding: 1.5rem 1.5rem 2rem;
+            width: 100%; max-width: 480px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+        .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 1.5rem; }
+        .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+        .modal-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+        .form-group { margin-bottom: 1.1rem; }
+        .form-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.45rem; display: block; }
+        .input-wrap { position: relative; }
+        .input-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--rose); font-size: 0.95rem; pointer-events: none; }
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.8);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; color: var(--text);
+            outline: none; transition: all 0.3s ease;
+        }
+        .form-input::placeholder { color: #c4a4ab; }
+        .form-input:focus { border-color: var(--rose); background: white; box-shadow: 0 0 0 4px rgba(242,167,184,0.12); }
+
+        .btn-confirm {
+            width: 100%;
+            background: linear-gradient(135deg, #e88fa3, #f2a7b8);
+            color: white; border: none; border-radius: 16px;
+            padding: 0.9rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem; font-weight: 500;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(232,143,163,0.3);
+            margin-top: 0.5rem;
+        }
+        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,143,163,0.4); }
+
+        /* ── MODAL Dressing Amie ── */
+        .dressing-modal {
+            position: fixed; inset: 0; z-index: 300;
+            background: rgba(61,44,48,0.45);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .dressing-modal.open { opacity: 1; pointer-events: all; }
+        .dressing-sheet {
+            background: var(--blush);
+            border-radius: 28px 28px 0 0;
+            padding: 1.5rem;
+            width: 100%; max-width: 480px;
+            max-height: 80vh; overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dressing-modal.open .dressing-sheet { transform: translateY(0); }
+
+        .dressing-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+        .dressing-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 10px rgba(232,143,163,0.2); }
+        .dressing-name { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; }
+        .dressing-sub { font-size: 0.72rem; color: var(--muted); }
+
+        .close-btn {
+            margin-left: auto;
+            background: rgba(242,167,184,0.15);
+            border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.4rem 0.7rem;
+            color: var(--muted); cursor: pointer; font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(242,167,184,0.3); color: var(--rose-deep); }
+
+        .dressing-items-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.7rem;
+        }
+        .dressing-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .dressing-item:hover { transform: scale(1.03); border-color: var(--rose); }
+        .dressing-item-img {
+            width: 100%; height: 80px;
+            background: linear-gradient(135deg, #fce4ec, #fdf0f3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+        }
+        .dressing-item-img img { width: 100%; height: 100%; object-fit: cover; }
+        .dressing-item-name { font-size: 0.68rem; color: var(--text); font-weight: 500; padding: 0.4rem 0.3rem; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--text); color: white;
+            border-radius: 14px; padding: 0.7rem 1.3rem;
+            font-size: 0.82rem; font-weight: 500;
+            opacity: 0; transition: all 0.3s ease;
+            z-index: 400; white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* NAV */
+        .nav-bottom {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(253,240,243,0.92);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 0 14px; z-index: 100;
+        }
+        .nav-inner { display: flex; justify-content: space-around; align-items: center; max-width: 480px; margin: 0 auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
+        .nav-item:hover { transform: translateY(-2px); }
+        .nav-item i { font-size: 1.3rem; }
+        .nav-item small { font-size: 9px; font-weight: 500; }
+        .nav-item.active i, .nav-item.active small { color: var(--rose-deep); }
+        .nav-item.inactive i, .nav-item.inactive small { color: #c4a4ab; }
+        .scan-btn {
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose));
+            color: white; width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-top: -28px; box-shadow: 0 4px 20px rgba(232,143,163,0.45);
+            transition: transform 0.3s ease; cursor: pointer; border: 3px solid var(--blush);
+        }
+        .scan-btn:hover { transform: scale(1.1) translateY(-2px); }
+
+        .page-exit { animation: fadeOut 0.4s ease forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .content { padding: 1rem; }
+            .page-header { padding: 0.9rem 1rem; }
+            .friend-card { padding: 0.85rem 1rem; }
+            .friend-avatar { width: 48px; height: 48px; }
+        }
+        /* ── CAMERA MODAL ── */
+.modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(61,44,48,0.4);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+    background: #fdf0f3;
+    border-radius: 28px 28px 0 0;
+    padding: 1.5rem;
+    width: 100%; max-width: 480px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle {
+    width: 36px; height: 4px;
+    background: rgba(242,167,184,0.3);
+    border-radius: 99px; margin: 0 auto 1.5rem;
+}
+.modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    color: #3d2c30; margin-bottom: 0.3rem;
+}
+.modal-sub { font-size: 0.82rem; color: #9e7e84; margin-bottom: 1.5rem; }
+.modal-options { display: flex; flex-direction: column; gap: 0.8rem; }
+.modal-option {
+    background: rgba(255,255,255,0.78);
+    border: 1.5px solid rgba(242,167,184,0.3);
+    border-radius: 18px; padding: 1.1rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer; transition: all 0.25s ease;
+}
+.modal-option:hover { border-color: #f2a7b8; transform: translateX(4px); }
+.modal-option-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.modal-option-text h6 { font-size: 0.9rem; font-weight: 600; color: #3d2c30; margin-bottom: 2px; }
+.modal-option-text p { font-size: 0.72rem; color: #9e7e84; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="header-left">
+            <a href="dashboard.html" class="back-btn" onclick="navigateTo(event,'dashboard.html')">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <span class="page-title">Mes Amies</span>
+        </div>
+        <span class="friends-count" id="friends-count">0 amies</span>
+    </div>
+
+    <div class="content">
+        <!-- SEARCH -->
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" class="search-input" placeholder="Rechercher une amie..." oninput="searchFriends(this.value)"/>
+        </div>
+
+        <!-- ADD BTN -->
+        <button class="btn-add-friend" onclick="openAddModal()">
+            <i class="bi bi-person-plus"></i>
+            Ajouter une amie
+        </button>
+
+        <!-- LIST -->
+        <div class="section-label">Mes amies 🎀</div>
+        <div class="friends-list" id="friends-list"></div>
+        <div class="empty-state" id="empty-state" style="display:none">
+            <div class="empty-icon">👭</div>
+            <div class="empty-title">Aucune amie pour l'instant</div>
+            <div class="empty-sub">Ajoutez vos amies pour voir<br>leur dressing et partager le vôtre</div>
+        </div>
+    </div>
+
+    <!-- MODAL Ajouter Amie -->
+    <div class="modal-overlay" id="add-modal" onclick="closeAddModalOutside(event)">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Ajouter une amie 🌸</div>
+            <div class="modal-sub">Entrez les informations de votre amie</div>
+
+            <div class="form-group">
+                <label class="form-label">Prénom</label>
+                <div class="input-wrap">
+                    <i class="bi bi-person"></i>
+                    <input type="text" class="form-input" id="friend-name" placeholder="Salma, Zineb..."/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email (optionnel)</label>
+                <div class="input-wrap">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" class="form-input" id="friend-email" placeholder="amie@email.com"/>
+                </div>
+            </div>
+
+            <button class="btn-confirm" onclick="addFriend()">
+                <i class="bi bi-person-check me-2"></i>Ajouter
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL Dressing Amie -->
+    <div class="dressing-modal" id="dressing-modal" onclick="closeDressingOutside(event)">
+        <div class="dressing-sheet">
+            <div class="modal-handle"></div>
+            <div class="dressing-header">
+                <img id="modal-friend-avatar" class="dressing-avatar" src="" alt=""/>
+                <div>
+                    <div class="dressing-name" id="modal-friend-name"></div>
+                    <div class="dressing-sub" id="modal-friend-pieces"></div>
+                </div>
+                <button class="close-btn" onclick="closeDressing()">✕ Fermer</button>
+            </div>
+            <div class="dressing-items-grid" id="modal-dressing-items"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- NAV -->
+    <div class="nav-bottom">
+        <div class="nav-inner">
+            <a href="dashboard.html" class="nav-item inactive" onclick="navigateTo(event,'dashboard.html')" style="text-decoration:none">
+                <i class="bi bi-house-door-fill"></i>
+                <small>Accueil</small>
+            </a>
+            <a href="dressing.html" class="nav-item inactive" onclick="navigateTo(event,'dressing.html')" style="text-decoration:none">
+                <i class="bi bi-archive-fill"></i>
+                <small>Dressing</small>
+            </a>
+            <a href="dashboard.html" class="scan-btn" onclick="navigateTo(event,'dashboard.html')" style="text-decoration:none">
+                <i class="bi bi-camera-fill"></i>
+            </a>
+            <div class="nav-item active">
+                <i class="bi bi-people-fill"></i>
+                <small>Amies</small>
+            </div>
+            <a href="profile.html" class="nav-item inactive" onclick="navigateTo(event,'profile.html')" style="text-decoration:none">
+                <i class="bi bi-person-circle"></i>
+                <small>Profil</small>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ── STATE ──
+        let friends = JSON.parse(localStorage.getItem('amies') || '[]');
+
+        // Ajouter amies par défaut si vide
+        if (friends.length === 0) {
+            friends = [
+                { id: '1', name: 'Salma', email: 'salma@email.com', avatar: 'https://i.pravatar.cc/100?u=salma', online: true, addedAt: new Date().toISOString() },
+                { id: '2', name: 'Zineb', email: 'zineb@email.com', avatar: 'https://i.pravatar.cc/100?u=zineb', online: false, addedAt: new Date().toISOString() },
+                { id: '3', name: 'Ghita', email: 'ghita@email.com', avatar: 'https://i.pravatar.cc/100?u=ghita', online: true, addedAt: new Date().toISOString() },
+                { id: '4', name: 'Leila', email: 'leila@email.com', avatar: 'https://i.pravatar.cc/100?u=leila', online: false, addedAt: new Date().toISOString() },
+            ];
+            localStorage.setItem('amies', JSON.stringify(friends));
+        }
+
+        let filteredFriends = [...friends];
+
+        // ── RENDER ──
+        function renderFriends() {
+            const list = document.getElementById('friends-list');
+            const empty = document.getElementById('empty-state');
+            const count = document.getElementById('friends-count');
+
+            count.textContent = `${friends.length} amie${friends.length > 1 ? 's' : ''}`;
+
+            if (filteredFriends.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            // Get dressing counts
+            const dressing = JSON.parse(localStorage.getItem('dressing') || '[]');
+
+            list.innerHTML = filteredFriends.map((f, i) => {
+                const pieces = Math.floor(Math.random() * 15) + 3; // simulation
+                return `
+                <div class="friend-card" style="animation-delay:${i*0.07}s" onclick="viewDressing('${f.id}')">
+                    <div class="friend-avatar-wrap">
+                        <img class="friend-avatar" src="${f.avatar || `https://i.pravatar.cc/100?u=${f.name}`}" alt="${f.name}"
+                             onerror="this.src='https://i.pravatar.cc/100?u=${f.id}'"/>
+                        ${f.online ? '<div class="friend-online"></div>' : ''}
+                    </div>
+                    <div class="friend-info">
+                        <div class="friend-name">${f.name}</div>
+                        <div class="friend-meta">
+                            <span class="friend-pieces">${pieces} pièces</span>
+                            ${f.online ? '<span style="color:#81c784">● En ligne</span>' : '<span>Hors ligne</span>'}
+                        </div>
+                    </div>
+                    <button class="friend-action" onclick="event.stopPropagation(); viewDressing('${f.id}')">
+                        Voir 👗
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        // ── SEARCH ──
+        function searchFriends(query) {
+            filteredFriends = friends.filter(f =>
+                f.name.toLowerCase().includes(query.toLowerCase())
+            );
+            renderFriends();
+        }
+
+        // ── ADD FRIEND ──
+        function openAddModal() {
+            document.getElementById('add-modal').classList.add('open');
+            setTimeout(() => document.getElementById('friend-name').focus(), 400);
+        }
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('open');
+            document.getElementById('friend-name').value = '';
+            document.getElementById('friend-email').value = '';
+        }
+        function closeAddModalOutside(e) {
+            if (e.target === document.getElementById('add-modal')) closeAddModal();
+        }
+
+        function addFriend() {
+            const name = document.getElementById('friend-name').value.trim();
+            if (!name) {
+                document.getElementById('friend-name').style.borderColor = '#e57373';
+                setTimeout(() => document.getElementById('friend-name').style.borderColor = '', 1500);
+                return;
+            }
+            const email = document.getElementById('friend-email').value.trim();
+            const newFriend = {
+                id: Date.now().toString(),
+                name,
+                email,
+                avatar: `https://i.pravatar.cc/100?u=${name}${Date.now()}`,
+                online: false,
+                addedAt: new Date().toISOString()
+            };
+            friends.unshift(newFriend);
+            filteredFriends = [...friends];
+            localStorage.setItem('amies', JSON.stringify(friends));
+            closeAddModal();
+            renderFriends();
+            showToast(`🌸 ${name} ajoutée !`);
+        }
+
+        // ── VIEW DRESSING ──
+        function viewDressing(friendId) {
+            const friend = friends.find(f => f.id === friendId);
+            if (!friend) return;
+
+            document.getElementById('modal-friend-avatar').src = friend.avatar || `https://i.pravatar.cc/100?u=${friend.name}`;
+            document.getElementById('modal-friend-name').textContent = `Dressing de ${friend.name}`;
+
+            // Simulation dressing items
+            const items = [
+                { emoji: '👗', name: 'Robe florale' },
+                { emoji: '👠', name: 'Talons noirs' },
+                { emoji: '👜', name: 'Sac beige' },
+                { emoji: '🧥', name: 'Veste rose' },
+                { emoji: '👖', name: 'Jean slim' },
+                { emoji: '👕', name: 'Top blanc' },
+            ];
+
+            document.getElementById('modal-friend-pieces').textContent = `${items.length} pièces`;
+            document.getElementById('modal-dressing-items').innerHTML = items.map(item => `
+                <div class="dressing-item">
+                    <div class="dressing-item-img">${item.emoji}</div>
+                    <div class="dressing-item-name">${item.name}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('dressing-modal').classList.add('open');
+        }
+
+        function closeDressing() {
+            document.getElementById('dressing-modal').classList.remove('open');
+        }
+        function closeDressingOutside(e) {
+            if (e.target === document.getElementById('dressing-modal')) closeDressing();
+        }
+
+        // ── TOAST ──
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ── NAVIGATION ──
+        function navigateTo(e, url) {
+            e.preventDefault();
+            document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = url, 400);
+        }
+
+        // ── INIT ──
+        renderFriends();
+    </script>
+</body>
+</html>

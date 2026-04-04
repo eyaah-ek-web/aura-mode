@@ -412,7 +412,57 @@
     .petal-1 { top: 15%; left: 5%; animation: float 4s 0s ease-in-out infinite; }
     .petal-2 { top: 40%; right: 4%; animation: float 5s 1s ease-in-out infinite; }
     .petal-3 { top: 70%; left: 8%; animation: float 4.5s 0.5s ease-in-out infinite; }
-
+/* ── CAMERA MODAL ── */
+.modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(61,44,48,0.4);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding-bottom: 0;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+    background: #fdf0f3;
+    border-radius: 28px 28px 0 0;
+    padding: 1.5rem 1.5rem 4rem;
+    width: 100%;
+    max-width: 480px;
+    max-height: 70vh;
+    overflow-y: translateY(100%);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle {
+    width: 36px; height: 4px;
+    background: rgba(242,167,184,0.3);
+    border-radius: 99px; margin: 0 auto 1.5rem;
+}
+.modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    color: #3d2c30; margin-bottom: 0.3rem;
+}
+.modal-sub { font-size: 0.82rem; color: #9e7e84; margin-bottom: 1.5rem; }
+.modal-options { display: flex; flex-direction: column; gap: 0.8rem; }
+.modal-option {
+    background: rgba(255,255,255,0.78);
+    border: 1.5px solid rgba(242,167,184,0.3);
+    border-radius: 18px; padding: 1.1rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer; transition: all 0.25s ease;
+}
+.modal-option:hover { border-color: #f2a7b8; transform: translateX(4px); }
+.modal-option-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.modal-option-text h6 { font-size: 0.9rem; font-weight: 600; color: #3d2c30; margin-bottom: 2px; }
+.modal-option-text p { font-size: 0.72rem; color: #9e7e84; margin: 0; }
 </style>
 
 
@@ -527,21 +577,55 @@
             <i class="bi bi-house-door-fill"></i>
             <small>Accueil</small>
         </div>
+
         <a href="dressing.html" class="nav-item inactive" style="text-decoration:none" onclick="navigateTo(event,'dressing.html')">
             <i class="bi bi-archive-fill"></i>
             <small>Dressing</small>
         </a>
-        <div class="scan-btn">
+
+        <div class="scan-btn" onclick="document.getElementById('nav-camera-modal').classList.add('open')">
             <i class="bi bi-camera-fill"></i>
         </div>
-        <div class="nav-item inactive">
-            <i class="bi bi-people-fill"></i>
-            <small>Amies</small>
-        </div>
+
+        <a href="amies.html" class="nav-item inactive" onclick="navigateTo(event,'amies.html')" style="text-decoration:none">
+             <i class="bi bi-people-fill"></i>
+             <small>Amies</small>
+        </a>
+
         <a href="profile.html" class="nav-item inactive" style="text-decoration:none" onclick="navigateTo(event,'profile.html')">
             <i class="bi bi-person-circle"></i>
             <small>Profil</small>
         </a>
+    </div>
+</div>
+<!-- Hidden inputs -->
+<input type="file" id="navCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleNavImage(event)"/>
+<input type="file" id="navGalleryInput" accept="image/*" style="display:none" onchange="handleNavImage(event)"/>
+
+<!-- Popup caméra/galerie -->
+<div class="modal-overlay" id="nav-camera-modal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Ajouter un vêtement 📸</div>
+        <div class="modal-sub">Choisissez comment ajouter votre pièce</div>
+        <div class="modal-options">
+            <div class="modal-option" onclick="document.getElementById('navCameraInput').click(); document.getElementById('nav-camera-modal').classList.remove('open')">
+                <div class="modal-option-icon" style="background: rgba(232,143,163,0.15);">📸</div>
+                <div class="modal-option-text">
+                    <h6>Prendre une photo</h6>
+                    <p>Ouvrir la caméra directement</p>
+                </div>
+                <i class="bi bi-chevron-right" style="color: var(--muted); margin-left: auto;"></i>
+            </div>
+            <div class="modal-option" onclick="document.getElementById('navGalleryInput').click(); document.getElementById('nav-camera-modal').classList.remove('open')">
+                <div class="modal-option-icon" style="background: rgba(184,207,192,0.2);">🖼️</div>
+                <div class="modal-option-text">
+                    <h6>Choisir depuis la galerie</h6>
+                    <p>Importer une photo existante</p>
+                </div>
+                <i class="bi bi-chevron-right" style="color: var(--muted); margin-left: auto;"></i>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -659,6 +743,20 @@ async function demanderPosition() {
         },
         {timeout: 10000, enableHighAccuracy: true}
     );
+}
+function handleNavImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        // Sauvegarder image o redirect vers dressing
+        localStorage.setItem('pendingImage', ev.target.result);
+        document.body.style.transition = 'opacity 0.4s ease';
+        document.body.style.opacity = '0';
+        setTimeout(() => window.location.href = 'dressing.html', 400);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
 }
 </script>
 

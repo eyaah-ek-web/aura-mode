@@ -528,6 +528,16 @@
     let currentFilter = 'tout';
     let currentImageData = null;
     let currentIAResult = null;
+    // Check pending image men nav
+const pendingImg = localStorage.getItem('pendingImage');
+if (pendingImg) {
+    localStorage.removeItem('pendingImage');
+    setTimeout(() => {
+        currentImageData = pendingImg;
+        openPreview(pendingImg);
+        analyzeWithIA(pendingImg);
+    }, 600);
+}
 
     // ── INIT ──
     renderDressing();
