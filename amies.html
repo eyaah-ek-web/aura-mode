@@ -6,6 +6,8 @@
     <title>Aura Mode — Mes Amies</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <style>
         :root {
             --rose: #f2a7b8;
@@ -458,6 +460,29 @@
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- MODAL Caméra nav (BUG FIX) -->
+    <div class="modal-overlay" id="nav-camera-modal" onclick="if(event.target===this)closeNavModal()">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Ajouter un vêtement 📸</div>
+            <div class="modal-sub">Choisissez comment ajouter votre pièce</div>
+            <div class="modal-options">
+                <div class="modal-option" onclick="document.getElementById('navCameraInput').click(); closeNavModal()">
+                    <div class="modal-option-icon" style="background:rgba(232,143,163,0.15)">📸</div>
+                    <div class="modal-option-text"><h6>Prendre une photo</h6><p>Ouvrir la caméra directement</p></div>
+                    <i class="bi bi-chevron-right" style="color:#9e7e84;margin-left:auto"></i>
+                </div>
+                <div class="modal-option" onclick="document.getElementById('navGalleryInput').click(); closeNavModal()">
+                    <div class="modal-option-icon" style="background:rgba(184,207,192,0.2)">🖼️</div>
+                    <div class="modal-option-text"><h6>Choisir depuis la galerie</h6><p>Importer une photo existante</p></div>
+                    <i class="bi bi-chevron-right" style="color:#9e7e84;margin-left:auto"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="navCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleNavImage(event)"/>
+    <input type="file" id="navGalleryInput" accept="image/*" style="display:none" onchange="handleNavImage(event)"/>
+
     <!-- NAV -->
     <div class="nav-bottom">
         <div class="nav-inner">
@@ -469,9 +494,9 @@
                 <i class="bi bi-archive-fill"></i>
                 <small>Dressing</small>
             </a>
-            <a href="dashboard.html" class="scan-btn" onclick="navigateTo(event,'dashboard.html')" style="text-decoration:none">
+            <div class="scan-btn" onclick="openCameraModal()" style="cursor:pointer;">
                 <i class="bi bi-camera-fill"></i>
-            </a>
+            </div>
             <div class="nav-item active">
                 <i class="bi bi-people-fill"></i>
                 <small>Amies</small>
@@ -483,7 +508,11 @@
         </div>
     </div>
 
+
     <script>
+        // ── AUTH GUARD ──
+        requireAuth();
+
         // ── STATE ──
         let friends = JSON.parse(localStorage.getItem('amies') || '[]');
 
@@ -637,6 +666,27 @@
             document.body.style.transition = 'opacity 0.4s ease';
             document.body.style.opacity = '0';
             setTimeout(() => window.location.href = url, 400);
+        }
+
+        // BUG FIX: scan btn ouvre caméra → redirige vers dressing
+        function openCameraModal() {
+            document.getElementById('nav-camera-modal').classList.add('open');
+        }
+        function closeNavModal() {
+            document.getElementById('nav-camera-modal').classList.remove('open');
+        }
+        function handleNavImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                localStorage.setItem('pendingImage', ev.target.result);
+                document.body.style.transition = 'opacity 0.4s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => window.location.href = 'dressing.html', 400);
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
         }
 
         // ── INIT ──

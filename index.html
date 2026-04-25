@@ -7,6 +7,8 @@
     <title>Aura Mode — Connexion</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <style>
         :root {
             --rose: #f2a7b8;
@@ -364,6 +366,7 @@ body {
                 <div class="input-wrap">
                     <i class="bi bi-lock"></i>
                     <input type="password" class="form-input" id="passwordInput" placeholder="••••••••" required minlength="8"/>
+                    <i class="bi bi-eye toggle-password" id="togglePwd" onclick="togglePassword()"></i>
                 </div>
             </div>
 
@@ -385,7 +388,14 @@ body {
     </div>
 </div>
 
+
 <script>
+    // Redirect if already logged in
+    (async () => {
+        const user = await getCurrentUser();
+        if (user) window.location.href = 'dashboard.html';
+    })();
+
     // Floating petals
     const petals = ['🌸', '🌷', '✿', '❀'];
     for (let i = 0; i < 8; i++) {
@@ -419,16 +429,52 @@ body {
         setTimeout(() => window.location.href = url, 400);
     }
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn = document.querySelector('.btn-primary-rose');
-    btn.classList.add('success');
-    btn.innerHTML = '✓ Connexion réussie';
-    setTimeout(() => {
-        document.body.classList.add('page-exit');
-        setTimeout(() => window.location.href = 'dashboard.html', 500);
-    }, 700);
-});
+    function showError(msg) {
+        let err = document.getElementById('login-error');
+        if (!err) {
+            err = document.createElement('div');
+            err.id = 'login-error';
+            err.style.cssText = 'background:rgba(229,115,115,0.12);border:1px solid rgba(229,115,115,0.3);border-radius:12px;padding:0.7rem 1rem;font-size:0.82rem;color:#c0616b;margin-bottom:1rem;text-align:center;';
+            document.getElementById('loginForm').prepend(err);
+        }
+        err.textContent = msg;
+        err.style.display = 'block';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.querySelector('.btn-primary-rose');
+        const email = this.querySelector('[type="email"]').value.trim();
+        const password = document.getElementById('passwordInput').value;
+
+        btn.innerHTML = '<span style="opacity:0.7">Connexion...</span>';
+        btn.disabled = true;
+
+        // Masquer erreur précédente
+        const prevErr = document.getElementById('login-error');
+        if (prevErr) prevErr.style.display = 'none';
+
+        try {
+            await authSignIn(email, password);
+            btn.classList.add('success');
+            btn.innerHTML = '✓ Connexion réussie';
+            setTimeout(() => {
+                document.body.classList.add('page-exit');
+                setTimeout(() => window.location.href = 'dashboard.html', 500);
+            }, 700);
+        } catch (err) {
+            btn.innerHTML = 'Se connecter ✦';
+            btn.disabled = false;
+            // Messages d'erreur en français
+            if (err.message.includes('Invalid login')) {
+                showError('❌ Email ou mot de passe incorrect');
+            } else if (err.message.includes('Email not confirmed')) {
+                showError('📧 Vérifiez votre email pour confirmer votre compte');
+            } else {
+                showError('❌ ' + err.message);
+            }
+        }
+    });
 </script>
 
 </body>

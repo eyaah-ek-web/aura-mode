@@ -8,7 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
 
 <style>
     :root {
@@ -629,6 +630,7 @@
     </div>
 </div>
 
+
 <script>
     function navigateTo(e, url) {
         e.preventDefault();
@@ -639,6 +641,20 @@
 
     const API_KEY = "e7b1403248963f98f9a8faa7f6deec0e";
     let currentTenue = null;
+
+    // ── AUTH GUARD + INIT ──
+    (async () => {
+        const user = await requireAuth();
+        if (!user) return;
+
+        // Afficher le prénom
+        const prenom = getUserPrenom(user);
+        const greetEl = document.querySelector('.weather-card h5');
+        if (greetEl) greetEl.textContent = `Bonjour, ${prenom} ! ✨`;
+
+        // Charger météo automatiquement
+        demanderPosition();
+    })();
 
     function setLoading(oui) {
         const cols = document.querySelectorAll('.item-col');
@@ -665,24 +681,23 @@
     }
 
     async function getTenueIA(temp, description, ville) {
-    try {
-        const response = await fetch("/.netlify/functions/claude", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ temp, description, ville })
-        });
-        const data = await response.json();
-        // التأكد أن البيانات صحيحة
-        if (data.haut && data.bas && data.acc) {
-            return data;
-        } else {
+        try {
+            const response = await fetch("/.netlify/functions/claude", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ temp, description, ville })
+            });
+            const data = await response.json();
+            if (data.haut && data.bas && data.acc) {
+                return data;
+            } else {
+                return fallbackTenue(temp);
+            }
+        } catch(e) {
+            console.log("IA failed, using fallback", e);
             return fallbackTenue(temp);
         }
-    } catch(e) {
-        console.log("IA failed, using fallback", e);
-        return fallbackTenue(temp);
     }
-}
 
     async function changerStyle() {
         if (!currentTenue) return;
@@ -697,7 +712,6 @@
             setTenue(tenue);
         } catch(e) {
             setTenue(fallbackTenue(20));
-            setLoading(false);
         }
     }
 
@@ -711,65 +725,72 @@
         }, 2000);
     }
 
-    // GÉOLOCALISATION + MÉTÉO
-    // Demander permission manuellement
-document.querySelector('.weather-card').style.cursor = 'pointer';
-document.querySelector('.weather-card').addEventListener('click', demanderPosition);
+    // BUG FIX: météo se charge automatiquement (appelée depuis init async)
+    // Le click manuel reste disponible si l'utilisateur veut rafraîchir
+    document.querySelector('.weather-card').style.cursor = 'pointer';
+    document.querySelector('.weather-card').addEventListener('click', demanderPosition);
 
-async function demanderPosition() {
-  document.querySelector('.weather-card p').textContent = 
-    'Chargement... 📍';
-  navigator.geolocation.getCurrentPosition(
-        async function(position) {
-            const { latitude: lat, longitude: lon } = position.coords;
-            const meteo = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`
-            ).then(r => r.json());
+    async function demanderPosition() {
+        document.querySelector('.weather-card p').textContent = 'Chargement... 📍';
 
-            const temp = Math.round(meteo.main.temp);
-            const description = meteo.weather[0].description;
-            const ville = meteo.name;
-            const icone = meteo.weather[0].main;
-
-            document.querySelector(".weather-card p").textContent =
-                `${ville.toUpperCase()} : ${temp}°C • ${description.toUpperCase()}`;
-
-            const iconEl = document.querySelector(".weather-icon");
-            if (icone === "Clear")  iconEl.className = "bi bi-brightness-high-fill weather-icon";
-            else if (icone === "Clouds") iconEl.className = "bi bi-cloud-fill weather-icon";
-            else if (icone === "Rain")   iconEl.className = "bi bi-cloud-rain-fill weather-icon";
-            else if (icone === "Snow")   iconEl.className = "bi bi-snow weather-icon";
-            else iconEl.className = "bi bi-cloud-sun-fill weather-icon";
-
-            setLoading(true);
-            try {
-                const tenue = await getTenueIA(temp, description, ville);
-                setTenue(tenue);
-            } catch(e) {
-                setTenue(fallbackTenue(temp));
-            }
-        },
-        function() {
-            document.querySelector(".weather-card p").textContent = "Activez la localisation 📍";
+        if (!navigator.geolocation) {
+            document.querySelector('.weather-card p').textContent = 'Géolocalisation non supportée';
             setTenue(fallbackTenue(18));
-        },
-        {timeout: 10000, enableHighAccuracy: true}
-    );
-}
-function handleNavImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        // Sauvegarder image o redirect vers dressing
-        localStorage.setItem('pendingImage', ev.target.result);
-        document.body.style.transition = 'opacity 0.4s ease';
-        document.body.style.opacity = '0';
-        setTimeout(() => window.location.href = 'dressing.html', 400);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-}
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async function(position) {
+                const { latitude: lat, longitude: lon } = position.coords;
+                try {
+                    const meteo = await fetch(
+                        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`
+                    ).then(r => r.json());
+
+                    const temp = Math.round(meteo.main.temp);
+                    const description = meteo.weather[0].description;
+                    const ville = meteo.name;
+                    const icone = meteo.weather[0].main;
+
+                    document.querySelector(".weather-card p").textContent =
+                        `${ville.toUpperCase()} : ${temp}°C • ${description.toUpperCase()}`;
+
+                    const iconEl = document.querySelector(".weather-icon");
+                    if (icone === "Clear")       iconEl.className = "bi bi-brightness-high-fill weather-icon";
+                    else if (icone === "Clouds") iconEl.className = "bi bi-cloud-fill weather-icon";
+                    else if (icone === "Rain")   iconEl.className = "bi bi-cloud-rain-fill weather-icon";
+                    else if (icone === "Snow")   iconEl.className = "bi bi-snow weather-icon";
+                    else                         iconEl.className = "bi bi-cloud-sun-fill weather-icon";
+
+                    setLoading(true);
+                    const tenue = await getTenueIA(temp, description, ville);
+                    setTenue(tenue);
+                } catch(e) {
+                    document.querySelector('.weather-card p').textContent = 'Erreur météo 😔';
+                    setTenue(fallbackTenue(18));
+                }
+            },
+            function() {
+                document.querySelector(".weather-card p").textContent = "Casablanca : 22°C • Ensoleillé";
+                setTenue(fallbackTenue(22));
+            },
+            { timeout: 10000, enableHighAccuracy: true }
+        );
+    }
+
+    function handleNavImage(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            localStorage.setItem('pendingImage', ev.target.result);
+            document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = 'dressing.html', 400);
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -7,6 +7,8 @@
     <title>Aura Mode — Mon Dressing</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <style>
         :root {
             --rose: #f2a7b8;
@@ -523,22 +525,27 @@
     </div>
 </div>
 
+
 <script>
+    // ── AUTH GUARD ──
+    requireAuth();
+
     // ── STATE ──
     let dressing = JSON.parse(localStorage.getItem('dressing') || '[]');
     let currentFilter = 'tout';
     let currentImageData = null;
     let currentIAResult = null;
+
     // Check pending image men nav
-const pendingImg = localStorage.getItem('pendingImage');
-if (pendingImg) {
-    localStorage.removeItem('pendingImage');
-    setTimeout(() => {
-        currentImageData = pendingImg;
-        openPreview(pendingImg);
-        analyzeWithIA(pendingImg);
-    }, 600);
-}
+    const pendingImg = localStorage.getItem('pendingImage');
+    if (pendingImg) {
+        localStorage.removeItem('pendingImage');
+        setTimeout(() => {
+            currentImageData = pendingImg;
+            openPreview(pendingImg);
+            analyzeWithIA(pendingImg);
+        }, 600);
+    }
 
     // ── INIT ──
     renderDressing();
@@ -629,14 +636,35 @@ if (pendingImg) {
         const file = e.target.files[0];
         if (!file) return;
 
+        // BUG FIX: Compresser l'image avant de la stocker (évite overflow localStorage)
         const reader = new FileReader();
         reader.onload = function(ev) {
-            currentImageData = ev.target.result;
-            openPreview(currentImageData);
-            analyzeWithIA(currentImageData);
+            compressImage(ev.target.result, (compressed) => {
+                currentImageData = compressed;
+                openPreview(compressed);
+                analyzeWithIA(compressed);
+            });
         };
         reader.readAsDataURL(file);
         e.target.value = '';
+    }
+
+    // Compression image — réduit à max 600px et qualité 0.7
+    function compressImage(dataUrl, callback) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX = 600;
+            let w = img.width, h = img.height;
+            if (w > h && w > MAX) { h = (h * MAX) / w; w = MAX; }
+            else if (h > MAX) { w = (w * MAX) / h; h = MAX; }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = dataUrl;
     }
 
     function openPreview(imgSrc) {
@@ -654,63 +682,49 @@ if (pendingImg) {
 
     // ── IA ANALYSIS ──
     async function analyzeWithIA(imageData) {
-    try {
-        const base64 = imageData.split(',')[1];
-        const mediaType = imageData.split(';')[0].split(':')[1];
+        try {
+            const base64 = imageData.split(',')[1];
+            const mediaType = imageData.split(';')[0].split(':')[1];
 
-        const response = await fetch("/.netlify/functions/claude", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                type: "analyze_clothing",
-                image: base64,
-                mediaType: mediaType
-            })
-        });
+            const response = await fetch("/.netlify/functions/claude", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "analyze_clothing",
+                    image: base64,
+                    mediaType: mediaType
+                })
+            });
 
-        const result = await response.json();
-        
-        // التأكد أن النتيجة فيها البيانات المطلوبة
-        if (result.name && result.category) {
-            currentIAResult = result;
-            showIAResult(result);
-        } else {
-            // Fallback إذا الرجوع مش مكتمل
-            const fallback = {
-                name: "Vêtement",
-                category: "haut",
-                color: "",
-                tags: ["Vêtement détecté"]
-            };
+            const result = await response.json();
+
+            if (result.name && result.category) {
+                currentIAResult = result;
+                showIAResult(result);
+            } else {
+                const fallback = { name: "Vêtement", category: "haut", color: "", tags: ["Vêtement détecté"] };
+                currentIAResult = fallback;
+                showIAResult(fallback);
+            }
+
+        } catch(e) {
+            console.log("IA analysis failed, using fallback", e);
+            const fallback = { name: "Vêtement", category: "haut", color: "", tags: ["Vêtement détecté"] };
             currentIAResult = fallback;
             showIAResult(fallback);
         }
-
-    } catch(e) {
-        console.log("IA analysis failed, using fallback", e);
-        const fallback = {
-            name: "Vêtement",
-            category: "haut",
-            color: "",
-            tags: ["Vêtement détecté"]
-        };
-        currentIAResult = fallback;
-        showIAResult(fallback);
     }
-}
 
     function showIAResult(result) {
         document.getElementById('ia-loading').style.display = 'none';
         document.getElementById('ia-result-section').style.display = 'block';
         document.getElementById('save-btn').style.display = 'flex';
 
-        // Fill form
         document.getElementById('item-name-input').value = result.name || '';
         if (result.category) {
             document.getElementById('item-category').value = result.category;
         }
 
-        // Tags
         const tagsEl = document.getElementById('ia-tags');
         const tags = [
             { text: result.name, main: true },
@@ -723,7 +737,7 @@ if (pendingImg) {
         ).join('');
     }
 
-    // ── SAVE ──
+    // ── SAVE — BUG FIX: try/catch sur localStorage (quota dépassé) ──
     function saveItem() {
         const name = document.getElementById('item-name-input').value.trim() || 'Vêtement';
         const category = document.getElementById('item-category').value;
@@ -739,7 +753,17 @@ if (pendingImg) {
         };
 
         dressing.unshift(newItem);
-        localStorage.setItem('dressing', JSON.stringify(dressing));
+
+        try {
+            localStorage.setItem('dressing', JSON.stringify(dressing));
+        } catch(e) {
+            // localStorage plein → supprimer les images des anciens items et réessayer
+            showToast('⚠️ Stockage plein, images anciennes supprimées');
+            dressing = dressing.map((item, i) => i === 0 ? item : { ...item, image: null });
+            try { localStorage.setItem('dressing', JSON.stringify(dressing)); }
+            catch(e2) { console.error('Impossible de sauvegarder', e2); }
+        }
+
         closePreview();
         renderDressing();
         showToast('✓ Ajouté au dressing !');

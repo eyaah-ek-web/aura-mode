@@ -7,6 +7,8 @@
     <title>Aura Mode — Inscription</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <style>
         :root {
             --rose: #f2a7b8;
@@ -332,6 +334,7 @@ body {
                     <div class="pwd-bar-bg"><div class="pwd-bar" id="pwd-bar"></div></div>
                     <div class="pwd-label" id="pwd-label" style="color: var(--muted)">Entrez un mot de passe</div>
                 </div>
+                <div class="error-msg" id="err-password">Mot de passe trop court (min. 8 caractères)</div>
             </div>
 
             <button class="btn-primary-rose" onclick="nextStep(1)">Continuer →</button>
@@ -380,7 +383,14 @@ body {
     </div>
 </div>
 
+
 <script>
+    // Redirect if already logged in
+    (async () => {
+        const user = await getCurrentUser();
+        if (user) window.location.href = 'dashboard.html';
+    })();
+
     // Petals
     const petals = ['🌸', '🌷', '✿', '❀'];
     for (let i = 0; i < 6; i++) {
@@ -445,6 +455,18 @@ body {
         if (!email || !/\S+@\S+\.\S+/.test(email)) { showErr('err-email', 'email'); ok = false; }
         else hideErr('err-email', 'email');
 
+        // BUG FIX: vérifier que le mot de passe fait au moins 8 caractères
+        if (pwd.length < 8) {
+            const pwdErr = document.getElementById('err-password');
+            if (pwdErr) { pwdErr.classList.add('show'); }
+            document.getElementById('password').classList.add('error');
+            ok = false;
+        } else {
+            const pwdErr = document.getElementById('err-password');
+            if (pwdErr) { pwdErr.classList.remove('show'); }
+            document.getElementById('password').classList.remove('error');
+        }
+
         return ok;
     }
 
@@ -458,34 +480,75 @@ body {
         document.getElementById(inputId).classList.add('success');
     }
 
-    function nextStep(current) {
-    const btn = document.querySelector('#panel-' + current + ' .btn-primary-rose');
-    
-    if (current === 1 && !validateStep1()) return;
-    
-    // Bouton devient rose foncé ✓
-    if (btn) {
-        btn.classList.add('success');
-        btn.innerHTML = '✓ Continuer';
-        setTimeout(() => {
-            btn.classList.remove('success');
-            // Passer au step suivant
-            if (current === 2) {
-                document.getElementById(`panel-${current}`).classList.remove('active');
-                document.getElementById('panel-3').classList.add('active');
-                document.getElementById('step-dot-2').className = 'step done';
-                document.getElementById('line-2').classList.add('done');
-                document.getElementById('step-dot-3').className = 'step active';
-            } else {
-                document.getElementById(`panel-${current}`).classList.remove('active');
-                document.getElementById(`panel-${current + 1}`).classList.add('active');
-                document.getElementById(`step-dot-${current}`).className = 'step done';
-                document.getElementById(`line-${current}`).classList.add('done');
-                document.getElementById(`step-dot-${current + 1}`).className = 'step active';
-            }
-        }, 600);
+    function showFormError(msg) {
+        let err = document.getElementById('form-error');
+        if (!err) {
+            err = document.createElement('div');
+            err.id = 'form-error';
+            err.style.cssText = 'background:rgba(229,115,115,0.12);border:1px solid rgba(229,115,115,0.3);border-radius:12px;padding:0.7rem 1rem;font-size:0.82rem;color:#c0616b;margin-bottom:1rem;text-align:center;';
+            document.getElementById('panel-2').prepend(err);
+        }
+        err.textContent = msg;
     }
-}
+
+    async function nextStep(current) {
+        const btn = document.querySelector('#panel-' + current + ' .btn-primary-rose');
+
+        if (current === 1 && !validateStep1()) return;
+
+        // Step 2 → créer le compte Supabase
+        if (current === 2) {
+            btn.innerHTML = '⏳ Création du compte...';
+            btn.disabled = true;
+
+            const prenom = document.getElementById('prenom').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                await authSignUp(email, password, prenom, selectedStyle || 'casual');
+                // Succès → step 3
+                doStepTransition(current, btn);
+            } catch (err) {
+                btn.innerHTML = 'Créer mon compte ✦';
+                btn.disabled = false;
+                if (err.message.includes('already registered')) {
+                    showFormError('❌ Cet email est déjà utilisé');
+                } else if (err.message.includes('Password should be')) {
+                    showFormError('❌ Mot de passe trop faible (min. 8 caractères)');
+                } else {
+                    showFormError('❌ ' + err.message);
+                }
+                return;
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.classList.add('success');
+            btn.innerHTML = '✓ Continuer';
+            setTimeout(() => {
+                btn.classList.remove('success');
+                doStepTransition(current, btn);
+            }, 600);
+        }
+    }
+
+    function doStepTransition(current, btn) {
+        if (current === 2) {
+            document.getElementById(`panel-${current}`).classList.remove('active');
+            document.getElementById('panel-3').classList.add('active');
+            document.getElementById('step-dot-2').className = 'step done';
+            document.getElementById('line-2').classList.add('done');
+            document.getElementById('step-dot-3').className = 'step active';
+        } else {
+            document.getElementById(`panel-${current}`).classList.remove('active');
+            document.getElementById(`panel-${current + 1}`).classList.add('active');
+            document.getElementById(`step-dot-${current}`).className = 'step done';
+            document.getElementById(`line-${current}`).classList.add('done');
+            document.getElementById(`step-dot-${current + 1}`).className = 'step active';
+        }
+    }
 
     function prevStep(current) {
         document.getElementById(`panel-${current}`).classList.remove('active');
