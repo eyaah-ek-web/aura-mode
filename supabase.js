@@ -2,7 +2,7 @@
 // Remplace YOUR_SUPABASE_URL et YOUR_SUPABASE_ANON_KEY par tes vraies clés
 // depuis https://supabase.com → ton projet → Settings → API
 
-const SUPABASE_URL = 'https://inrrahsuukrqjqolqlzp.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://inrrahsuukrqjqolqlzp.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_w3gfr-QvNLfmHgd41De9nA_jiWW2oMI';
 
 // Initialiser le client Supabase (via CDN, pas besoin de npm)
