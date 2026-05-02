@@ -649,7 +649,7 @@
 
         // Afficher le prénom
         const prenom = getUserPrenom(user);
-        const greetEl = document.getElementById('greeting-text').textContent = `Bonjour, ${prenom} ! ✨`;
+        document.getElementById('greeting-text').textContent = `Bonjour, ${prenom} ! ✨`;
 
         // Charger météo automatiquement
         demanderPosition();

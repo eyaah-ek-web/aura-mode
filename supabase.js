@@ -1,7 +1,7 @@
 
 
 const SUPABASE_URL = 'https://inrrahsuukrqjqolqlzp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_w3gfr-QvNLfmHgd41De9nA_jiWW2oMI';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlucnJhaHN1dWtycWpxb2xxbHpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMTI1NTQsImV4cCI6MjA5MjY4ODU1NH0.4dVojic-UIievyGoeBi7uDNixx_z8LkJ9fihkyTV_zI';
 
 // Initialiser le client Supabase (via CDN, pas besoin de npm)
 const { createClient } = supabase;
