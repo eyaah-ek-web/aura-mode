@@ -481,8 +481,8 @@
     <!-- WEATHER CARD -->
     <div class="weather-card p-4 mb-4 d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="mb-1">Bonjour ... ✨</h5>
-            <p class="mb-0">Chargement meteo...</p>
+            <h5 class="mb-1" id="greeting-text">Bonjour ... ✨</h5>
+            <p class="mb-0" id="weather-text">Chargement meteo...</p>
         </div>
         <i class="bi bi-brightness-high-fill weather-icon"></i>
     </div>
@@ -649,8 +649,7 @@
 
         // Afficher le prénom
         const prenom = getUserPrenom(user);
-        const greetEl = document.querySelector('.weather-card h5');
-        if (greetEl) greetEl.textContent = `Bonjour, ${prenom} ! ✨`;
+        const greetEl = document.getElementById('greeting-text').textContent = `Bonjour, ${prenom} ! ✨`;
 
         // Charger météo automatiquement
         demanderPosition();
@@ -703,7 +702,7 @@
         if (!currentTenue) return;
         setLoading(true);
         try {
-            const p = document.querySelector(".weather-card p").textContent;
+            const p = document.getElementById('weather-text').textContent;
             const parts = p.split("•");
             const temp = parseInt(parts[0].split(":")[1]);
             const desc = parts[1]?.trim().toLowerCase() || "nuageux";
@@ -727,14 +726,14 @@
 
     // BUG FIX: météo se charge automatiquement (appelée depuis init async)
     // Le click manuel reste disponible si l'utilisateur veut rafraîchir
-    document.querySelector('.weather-card').style.cursor = 'pointer';
-    document.querySelector('.weather-card').addEventListener('click', demanderPosition);
+    document.querySelector(".weather-card").style.cursor = 'pointer';
+    document.querySelector(".weather-card").addEventListener('click', demanderPosition);
 
     async function demanderPosition() {
-        document.querySelector('.weather-card p').textContent = 'Chargement... 📍';
+        document.getElementById('weather-text').textContent = 'Chargement... 📍';
 
         if (!navigator.geolocation) {
-            document.querySelector('.weather-card p').textContent = 'Géolocalisation non supportée';
+            document.getElementById('weather-text').textContent = 'Géolocalisation non supportée';
             setTenue(fallbackTenue(18));
             return;
         }
@@ -752,7 +751,7 @@
                     const ville = meteo.name;
                     const icone = meteo.weather[0].main;
 
-                    document.querySelector(".weather-card p").textContent =
+                    document.getElementById('weather-text').textContent =
                         `${ville.toUpperCase()} : ${temp}°C • ${description.toUpperCase()}`;
 
                     const iconEl = document.querySelector(".weather-icon");
@@ -766,12 +765,12 @@
                     const tenue = await getTenueIA(temp, description, ville);
                     setTenue(tenue);
                 } catch(e) {
-                    document.querySelector('.weather-card p').textContent = 'Erreur météo 😔';
+                    document.getElementById('weather-text').textContent = 'Erreur météo 😔';
                     setTenue(fallbackTenue(18));
                 }
             },
             function() {
-                document.querySelector(".weather-card p").textContent = "Casablanca : 22°C • Ensoleillé";
+                document.getElementById('weather-text').textContent = "Casablanca : 22°C • Ensoleillé";
                 setTenue(fallbackTenue(22));
             },
             { timeout: 10000, enableHighAccuracy: true }
